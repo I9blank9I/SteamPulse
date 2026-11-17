@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SteamPulse — Steam Account Worth & Playtime Calculator</title>
+    <title>SteamPulse — Steam Account Worth, Playtime & AccVersusAcc</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter & JetBrains Mono -->
@@ -82,17 +82,31 @@
     <!-- Top Navigation Bar -->
     <header class="sticky top-0 z-30 glass-panel border-b border-steam-border/80">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
-            <!-- Brand Logo -->
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-steam-blue to-cyan-400 flex items-center justify-center shadow-lg shadow-steam-blue/25">
-                    <i class="ph-fill ph-steam-logo text-2xl text-slate-950"></i>
-                </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="font-extrabold text-lg tracking-tight text-white">Steam<span class="text-steam-accent">Pulse</span></span>
-                        <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded-full bg-steam-blue/15 text-steam-accent border border-steam-accent/30 font-semibold">v2.4</span>
+            <!-- Brand Logo & Mode Switcher -->
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-steam-blue to-cyan-400 flex items-center justify-center shadow-lg shadow-steam-blue/25">
+                        <i class="ph-fill ph-steam-logo text-2xl text-slate-950"></i>
                     </div>
-                    <p class="text-xs text-slate-400 hidden sm:block">Account Worth, Playtime & Pile of Shame Analytics</p>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-lg tracking-tight text-white">Steam<span class="text-steam-accent">Pulse</span></span>
+                            <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded-full bg-steam-blue/15 text-steam-accent border border-steam-accent/30 font-semibold">v3.0</span>
+                        </div>
+                        <p class="text-xs text-slate-400 hidden xl:block">Account Worth, Playtime & 1v1 Battle Arena</p>
+                    </div>
+                </div>
+
+                <!-- Main Mode Switcher (Single Profile vs AccVersusAcc) -->
+                <div class="flex items-center bg-slate-950/90 border border-steam-border rounded-xl p-1 text-xs font-bold">
+                    <button onclick="switchAppMode('single')" id="mode-single-btn" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-steam-blue text-slate-950 shadow">
+                        <i class="ph-bold ph-user"></i>
+                        <span>Single Profile</span>
+                    </button>
+                    <button onclick="switchAppMode('versus')" id="mode-versus-btn" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-white">
+                        <i class="ph-bold ph-swords text-amber-400"></i>
+                        <span>AccVersusAcc</span>
+                    </button>
                 </div>
             </div>
 
@@ -108,13 +122,13 @@
                 <!-- Live Price Sync Button -->
                 <button onclick="fetchLiveCheapSharkPrices()" id="livePriceBtn" title="Fetch real-time discounts via public CheapShark API" class="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-800 text-xs font-medium text-emerald-400 border border-emerald-500/30 transition">
                     <i class="ph-bold ph-tag"></i>
-                    <span>Sync Live Store Prices</span>
+                    <span>Sync Store Prices</span>
                 </button>
 
                 <!-- GitHub + Netlify/Vercel Guide Modal Trigger -->
                 <button onclick="toggleDeployModal(true)" class="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-gradient-to-r from-steam-blue to-cyan-500 hover:from-cyan-400 hover:to-steam-blue text-slate-950 font-semibold text-xs sm:text-sm shadow-md shadow-steam-blue/20 transition">
                     <i class="ph-bold ph-github-logo text-base"></i>
-                    <span>GitHub & Hosting Guide</span>
+                    <span class="hidden sm:inline">GitHub & Serverless Code</span>
                 </button>
             </div>
         </div>
@@ -123,373 +137,543 @@
     <!-- Main Content Container -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- Search, Presets & API Config Panel -->
-        <section class="glass-panel rounded-2xl p-4 sm:p-6 shadow-xl">
-            <div class="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
+        <!-- =============================================================== -->
+        <!-- VIEW 1: SINGLE ACCOUNT ANALYTICS DASHBOARD                      -->
+        <!-- =============================================================== -->
+        <div id="singleModeContainer" class="space-y-6">
+
+            <!-- Search, Presets & API Config Panel -->
+            <section class="glass-panel rounded-2xl p-4 sm:p-6 shadow-xl">
+                <div class="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
+                    
+                    <!-- Steam ID Search Input -->
+                    <div class="flex-1 flex flex-col sm:flex-row gap-2.5">
+                        <div class="relative flex-1">
+                            <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                            <input 
+                                type="text" 
+                                id="steamIdInput" 
+                                value="76561198042819384"
+                                placeholder="Enter SteamID64 (76561198...) or Custom Vanity Username..." 
+                                class="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-steam-border rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-steam-accent focus:ring-1 focus:ring-steam-accent font-mono"
+                            >
+                        </div>
+                        <button onclick="handleAnalyzeAccount()" id="analyzeBtn" class="px-5 py-2.5 rounded-xl bg-steam-accent hover:bg-cyan-300 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 transition shrink-0 shadow-lg shadow-steam-accent/15">
+                            <i class="ph-bold ph-lightning"></i>
+                            <span>Calculate Worth</span>
+                        </button>
+                    </div>
+
+                    <!-- Quick Demo Profile Switcher + API Drawer Button -->
+                    <div class="flex flex-wrap items-center justify-between sm:justify-end gap-2 border-t lg:border-t-0 pt-3 lg:pt-0 border-steam-border/60">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-xs text-slate-400 mr-1 font-medium">Presets:</span>
+                            <button onclick="loadPresetProfile('core')" id="preset-core" class="text-xs px-2.5 py-1.5 rounded-lg bg-steam-blue/20 border border-steam-accent/50 text-steam-accent font-medium transition">
+                                Core Gamer (LVL 67)
+                            </button>
+                            <button onclick="loadPresetProfile('collector')" id="preset-collector" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-900/70 hover:bg-slate-800 border border-steam-border text-slate-300 transition">
+                                Whale Collector
+                            </button>
+                            <button onclick="loadPresetProfile('competitive')" id="preset-competitive" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-900/70 hover:bg-slate-800 border border-steam-border text-slate-300 transition">
+                                Esports Grinder
+                            </button>
+                        </div>
+
+                        <button onclick="toggleApiDrawer()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-steam-border flex items-center gap-1.5 transition">
+                            <i class="ph-bold ph-gear text-steam-accent"></i>
+                            <span>API Endpoint</span>
+                            <i id="apiDrawerChevron" class="ph ph-caret-down transition-transform"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Collapsible Steam Web API Configuration Drawer -->
+                <div id="apiSettingsDrawer" class="hidden mt-4 pt-4 border-t border-steam-border/80">
+                    <div class="bg-slate-950/70 border border-steam-border rounded-xl p-4">
+                        <div class="flex flex-col md:flex-row justify-between gap-4 mb-4">
+                            <div>
+                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                    <i class="ph-fill ph-key text-steam-accent"></i>
+                                    Live Steam Web API Connection
+                                </h3>
+                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                                    Queries <code class="text-steam-accent">/.netlify/functions/steam?steamId=...</code> for profile summary, owned games, vanity URL resolution, and accurate Steam Level (<code class="text-steam-accent">IPlayerService/GetSteamLevel/v1/</code>).
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <span id="connectionModeBadge" class="px-2.5 py-1 rounded-full text-xs font-mono bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                                    Mode: Hybrid Sandbox / Serverless Ready
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Serverless Endpoint URL (Netlify / Vercel)</label>
+                                <input type="text" id="serverlessEndpointInput" value="/.netlify/functions/steam" placeholder="/.netlify/functions/steam" class="w-full px-3 py-2 bg-slate-900 border border-steam-border rounded-lg text-xs text-white font-mono focus:outline-none focus:border-steam-accent">
+                            </div>
+                            <div class="flex items-end gap-2">
+                                <button onclick="saveApiSettings()" class="w-full py-2 px-4 bg-steam-blue hover:bg-cyan-400 text-slate-950 font-semibold rounded-lg text-xs transition flex items-center justify-center gap-1.5">
+                                    <i class="ph-bold ph-check-circle"></i>
+                                    Save Endpoint
+                                </button>
+                                <button onclick="addCustomGameModal(true)" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-lg text-xs transition shrink-0 border border-steam-border">
+                                    + Add Game
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Player Profile Banner -->
+            <section class="glass-panel rounded-2xl p-5 sm:p-6 relative overflow-hidden">
+                <div class="absolute -right-12 -top-12 w-56 h-56 bg-steam-blue/10 rounded-full blur-3xl pointer-events-none"></div>
                 
-                <!-- Steam ID Search Input -->
-                <div class="flex-1 flex flex-col sm:flex-row gap-2.5">
-                    <div class="relative flex-1">
-                        <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
-                        <input 
-                            type="text" 
-                            id="steamIdInput" 
-                            value="76561198042819384"
-                            placeholder="Enter SteamID64 (e.g., 76561198...) or Vanity URL..." 
-                            class="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-steam-border rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-steam-accent focus:ring-1 focus:ring-steam-accent font-mono"
-                        >
-                    </div>
-                    <button onclick="handleAnalyzeAccount()" id="analyzeBtn" class="px-5 py-2.5 rounded-xl bg-steam-accent hover:bg-cyan-300 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 transition shrink-0 shadow-lg shadow-steam-accent/15">
-                        <i class="ph-bold ph-lightning"></i>
-                        <span>Calculate Worth</span>
-                    </button>
-                </div>
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+                    <div class="flex items-center gap-4 sm:gap-5">
+                        <!-- Avatar with Status Ring -->
+                        <div class="relative shrink-0">
+                            <img id="profileAvatar" src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&w=200&q=80" onerror="this.src='https://placehold.co/120x120/1b2838/66c0f4?text=STEAM'" alt="Avatar" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-steam-accent shadow-lg shadow-steam-accent/20">
+                            <span class="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-slate-950 border-2 border-slate-950">ONLINE</span>
+                        </div>
 
-                <!-- Quick Demo Profile Switcher + API Drawer Button -->
-                <div class="flex flex-wrap items-center justify-between sm:justify-end gap-2 border-t lg:border-t-0 pt-3 lg:pt-0 border-steam-border/60">
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="text-xs text-slate-400 mr-1 font-medium">Presets:</span>
-                        <button onclick="loadPresetProfile('core')" id="preset-core" class="text-xs px-2.5 py-1.5 rounded-lg bg-steam-blue/20 border border-steam-accent/50 text-steam-accent font-medium transition">
-                            🎮 Core Gamer (28 Games)
-                        </button>
-                        <button onclick="loadPresetProfile('collector')" id="preset-collector" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-900/70 hover:bg-slate-800 border border-steam-border text-slate-300 transition">
-                            💎 Whale Collector
-                        </button>
-                        <button onclick="loadPresetProfile('competitive')" id="preset-competitive" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-900/70 hover:bg-slate-800 border border-steam-border text-slate-300 transition">
-                            🏆 Esports Grinder
-                        </button>
-                    </div>
-
-                    <button onclick="toggleApiDrawer()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-steam-border flex items-center gap-1.5 transition">
-                        <i class="ph-bold ph-gear text-steam-accent"></i>
-                        <span>Steam API Settings</span>
-                        <i id="apiDrawerChevron" class="ph ph-caret-down transition-transform"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Collapsible Steam Web API Configuration Drawer -->
-            <div id="apiSettingsDrawer" class="hidden mt-4 pt-4 border-t border-steam-border/80">
-                <div class="bg-slate-950/70 border border-steam-border rounded-xl p-4">
-                    <div class="flex flex-col md:flex-row justify-between gap-4 mb-4">
+                        <!-- User Details -->
                         <div>
-                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                <i class="ph-fill ph-key text-steam-accent"></i>
-                                Live Steam Web API Connection
-                            </h3>
-                            <p class="text-xs text-slate-400 mt-1 leading-relaxed">
-                                By default, Valve blocks direct browser requests via CORS to protect your Steam API key. To fetch live data for any public SteamID64, either connect your <strong class="text-slate-200">Netlify/Vercel Serverless endpoint</strong> (recommended, see top-right guide) or provide a Steam API Key with a CORS proxy below.
+                            <div class="flex flex-wrap items-center gap-2.5">
+                                <h1 id="profileName" class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">CyberSwiss_99</h1>
+                                <!-- Live Steam Level Badge (id="profile-level") -->
+                                <span id="profile-level" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-steam-blue/20 text-steam-accent border border-steam-accent/40">
+                                    LVL 67
+                                </span>
+                                <a id="profileSteamLink" href="https://steamcommunity.com/profiles/76561198042819384" target="_blank" rel="noopener noreferrer" class="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-steam-border flex items-center gap-1 transition">
+                                    <i class="ph-bold ph-arrow-square-out"></i> Steam Profile
+                                </a>
+                            </div>
+                            <p id="profileBio" class="text-xs sm:text-sm text-slate-400 mt-1">
+                                SteamID64: <span id="profileSteamId" class="font-mono text-slate-300">76561198042819384</span> • Member since <span id="profileYear" class="text-slate-200 font-medium">2014 (12 Years)</span>
                             </p>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <span id="connectionModeBadge" class="px-2.5 py-1 rounded-full text-xs font-mono bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                                Mode: Interactive Hybrid Sandbox
-                            </span>
+                            <div class="flex flex-wrap items-center gap-3 mt-2.5 text-xs text-slate-400">
+                                <span class="flex items-center gap-1 text-steam-accent">
+                                    <i class="ph-fill ph-game-controller"></i> <span id="profileGamesCount">28</span> Total Games
+                                </span>
+                                <span>•</span>
+                                <span class="flex items-center gap-1">
+                                    <i class="ph-fill ph-sparkle text-amber-400"></i> Top Focus: <strong id="profileGenre" class="text-slate-200">Action RPG & Tactical Shooter</strong>
+                                </span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <!-- Quick Actions -->
+                    <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-steam-border/60">
+                        <button onclick="sendCurrentToVersus()" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                            <i class="ph-bold ph-swords"></i>
+                            <span>Compare in 1v1 Battle</span>
+                        </button>
+                        <button onclick="addCustomGameModal(true)" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-steam-border text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                            <i class="ph-bold ph-plus-circle text-steam-accent"></i>
+                            <span>Add Game</span>
+                        </button>
+                        <button onclick="copyShareSummary()" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-steam-border text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                            <i class="ph-bold ph-share-network text-steam-accent"></i>
+                            <span>Copy Stats</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4 Executive KPI Cards -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Card 1: Total Account Worth -->
+                <div class="glass-panel rounded-2xl p-5 hover:border-steam-accent/40 transition group">
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                        <span>Estimated Account Worth</span>
+                        <span class="w-8 h-8 rounded-lg bg-steam-blue/15 text-steam-accent flex items-center justify-center group-hover:scale-110 transition">
+                            <i class="ph-fill ph-wallet text-lg"></i>
+                        </span>
+                    </div>
+                    <div class="mt-3 flex items-baseline gap-2">
+                        <span id="kpiRetailWorth" class="text-2xl sm:text-3xl font-extrabold font-mono text-white">CHF 1,245.50</span>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-steam-border/60 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Current Sale Value:</span>
+                        <span id="kpiSaleWorth" class="font-mono font-semibold text-emerald-400">CHF 412.80</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: Total Combined Playtime -->
+                <div class="glass-panel rounded-2xl p-5 hover:border-steam-accent/40 transition group">
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                        <span>Total Playtime</span>
+                        <span class="w-8 h-8 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center group-hover:scale-110 transition">
+                            <i class="ph-fill ph-clock-countdown text-lg"></i>
+                        </span>
+                    </div>
+                    <div class="mt-3 flex items-baseline gap-2">
+                        <span id="kpiTotalHours" class="text-2xl sm:text-3xl font-extrabold font-mono text-white">4,182 hrs</span>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-steam-border/60 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Real-Life Time:</span>
+                        <span id="kpiTotalDays" class="font-mono font-semibold text-purple-300">174.2 Full Days</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: Cost Efficiency -->
+                <div class="glass-panel rounded-2xl p-5 hover:border-steam-accent/40 transition group">
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                        <span>Cost Per Hour</span>
+                        <span class="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition">
+                            <i class="ph-fill ph-trend-down text-lg"></i>
+                        </span>
+                    </div>
+                    <div class="mt-3 flex items-baseline gap-2">
+                        <span id="kpiCostPerHour" class="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-400">CHF 0.30</span>
+                        <span class="text-xs text-slate-400 font-mono">/ hour</span>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-steam-border/60 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Avg per Game:</span>
+                        <span id="kpiAvgGamePrice" class="font-mono font-semibold text-slate-200">CHF 44.48</span>
+                    </div>
+                </div>
+
+                <!-- Card 4: Library Completion & Backlog Ratio -->
+                <div class="glass-panel rounded-2xl p-5 hover:border-steam-accent/40 transition group">
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                        <span>Played vs Unplayed</span>
+                        <span class="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center group-hover:scale-110 transition">
+                            <i class="ph-fill ph-books text-lg"></i>
+                        </span>
+                    </div>
+                    <div class="mt-3 flex items-baseline justify-between">
+                        <span id="kpiCompletionPct" class="text-2xl sm:text-3xl font-extrabold font-mono text-white">78.6%</span>
+                        <span id="kpiPlayedCount" class="text-xs font-mono text-slate-400">22 / 28 Played</span>
+                    </div>
+                    <!-- Progress Bar -->
+                    <div class="mt-3 w-full bg-slate-900 h-2 rounded-full overflow-hidden p-0.5 border border-steam-border">
+                        <div id="kpiCompletionBar" class="bg-gradient-to-r from-steam-blue to-emerald-400 h-full rounded-full transition-all duration-500" style="width: 78%"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Visual Breakdown Row: Playtime Distribution & Pile of Shame -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Left 2 Cols: Top 5 Most Played Games Breakdown -->
+                <div class="lg:col-span-2 glass-panel rounded-2xl p-5 sm:p-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
                         <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Serverless Endpoint URL (Netlify / Vercel)</label>
-                            <input type="text" id="serverlessEndpointInput" value="/.netlify/functions/steam" placeholder="/.netlify/functions/steam or /api/steam" class="w-full px-3 py-2 bg-slate-900 border border-steam-border rounded-lg text-xs text-white font-mono focus:outline-none focus:border-steam-accent">
+                            <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                                <i class="ph-fill ph-chart-bar text-steam-accent"></i>
+                                Playtime Distribution (Top 5 Games)
+                            </h2>
+                            <p class="text-xs text-slate-400">How your total gaming hours are concentrated across your top titles</p>
                         </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Optional Direct Steam Web API Key</label>
-                            <input type="password" id="steamApiKeyInput" placeholder="Paste 32-char Steam API Key..." class="w-full px-3 py-2 bg-slate-900 border border-steam-border rounded-lg text-xs text-white font-mono focus:outline-none focus:border-steam-accent">
-                        </div>
-                        <div class="flex items-end gap-2">
-                            <button onclick="saveApiSettings()" class="w-full py-2 px-4 bg-steam-blue hover:bg-cyan-400 text-slate-950 font-semibold rounded-lg text-xs transition flex items-center justify-center gap-1.5">
-                                <i class="ph-bold ph-check-circle"></i>
-                                Save & Test Connection
-                            </button>
-                            <button onclick="addCustomGameModal(true)" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-lg text-xs transition shrink-0 border border-steam-border" title="Manually add a game to your calculation">
-                                + Add Game
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Player Profile Banner -->
-        <section class="glass-panel rounded-2xl p-5 sm:p-6 relative overflow-hidden">
-            <div class="absolute -right-12 -top-12 w-56 h-56 bg-steam-blue/10 rounded-full blur-3xl pointer-events-none"></div>
-            
-            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
-                <div class="flex items-center gap-4 sm:gap-5">
-                    <!-- Avatar with Status Ring -->
-                    <div class="relative shrink-0">
-                        <img id="profileAvatar" src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&w=200&q=80" onerror="this.src='https://placehold.co/120x120/1b2838/66c0f4?text=STEAM'" alt="Avatar" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-steam-accent shadow-lg shadow-steam-accent/20">
-                        <span class="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-slate-950 border-2 border-slate-950">ONLINE</span>
+                        <span id="top5ShareBadge" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-steam-blue/15 text-steam-accent border border-steam-accent/30 self-start sm:self-auto">
+                            Top 5 = 84% of all playtime
+                        </span>
                     </div>
 
-                    <!-- User Details -->
-                    <div>
-                        <div class="flex flex-wrap items-center gap-2.5">
-                            <h1 id="profileName" class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">CyberSwiss_99</h1>
-                            <span id="profileLevel" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-steam-blue/20 text-steam-accent border border-steam-accent/40">
-                                LVL 64
-                            </span>
-                            <span class="px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                                <i class="ph-fill ph-shield-check"></i> VAC Clean
-                            </span>
-                        </div>
-                        <p id="profileBio" class="text-xs sm:text-sm text-slate-400 mt-1">
-                            SteamID64: <span id="profileSteamId" class="font-mono text-slate-300">76561198042819384</span> • Member since <span id="profileYear" class="text-slate-200 font-medium">2014 (12 Years)</span>
-                        </p>
-                        <div class="flex flex-wrap items-center gap-3 mt-2.5 text-xs text-slate-400">
-                            <span class="flex items-center gap-1 text-steam-accent">
-                                <i class="ph-fill ph-trophy"></i> <span id="profileBadges">48</span> Badges Earned
-                            </span>
-                            <span>•</span>
-                            <span class="flex items-center gap-1">
-                                <i class="ph-fill ph-sparkle text-amber-400"></i> Favorite Genre: <strong id="profileGenre" class="text-slate-200">Action RPG & Tactical Shooter</strong>
-                            </span>
-                        </div>
+                    <!-- Dynamic Bars Container -->
+                    <div id="topGamesBarsContainer" class="space-y-3.5">
+                        <!-- Populated via JS -->
                     </div>
                 </div>
 
-                <!-- Quick Share / Export Summary -->
-                <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-steam-border/60">
-                    <button onclick="addCustomGameModal(true)" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-steam-border text-xs font-semibold flex items-center justify-center gap-1.5 transition">
-                        <i class="ph-bold ph-plus-circle text-steam-accent"></i>
-                        <span>Add Game to Library</span>
-                    </button>
-                    <button onclick="copyShareSummary()" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-steam-border text-xs font-semibold flex items-center justify-center gap-1.5 transition">
-                        <i class="ph-bold ph-share-network text-steam-accent"></i>
-                        <span>Copy Stats Card</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- 4 Executive KPI Cards -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Card 1: Total Account Worth -->
-            <div class="glass-panel rounded-2xl p-5 hover:border-steam-accent/40 transition group">
-                <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                    <span>Total Account Worth</span>
-                    <span class="w-8 h-8 rounded-lg bg-steam-blue/15 text-steam-accent flex items-center justify-center group-hover:scale-110 transition">
-                        <i class="ph-fill ph-wallet text-lg"></i>
-                    </span>
-                </div>
-                <div class="mt-3 flex items-baseline gap-2">
-                    <span id="kpiRetailWorth" class="text-2xl sm:text-3xl font-extrabold font-mono text-white">CHF 1,245.50</span>
-                </div>
-                <div class="mt-3 pt-3 border-t border-steam-border/60 flex items-center justify-between text-xs">
-                    <span class="text-slate-400">Current Sale Value:</span>
-                    <span id="kpiSaleWorth" class="font-mono font-semibold text-emerald-400">CHF 412.80</span>
-                </div>
-            </div>
-
-            <!-- Card 2: Total Combined Playtime -->
-            <div class="glass-panel rounded-2xl p-5 hover:border-steam-accent/40 transition group">
-                <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                    <span>Total Playtime</span>
-                    <span class="w-8 h-8 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center group-hover:scale-110 transition">
-                        <i class="ph-fill ph-clock-countdown text-lg"></i>
-                    </span>
-                </div>
-                <div class="mt-3 flex items-baseline gap-2">
-                    <span id="kpiTotalHours" class="text-2xl sm:text-3xl font-extrabold font-mono text-white">4,182 hrs</span>
-                </div>
-                <div class="mt-3 pt-3 border-t border-steam-border/60 flex items-center justify-between text-xs">
-                    <span class="text-slate-400">Real-Life Time:</span>
-                    <span id="kpiTotalDays" class="font-mono font-semibold text-purple-300">174.2 Full Days</span>
-                </div>
-            </div>
-
-            <!-- Card 3: Cost Efficiency -->
-            <div class="glass-panel rounded-2xl p-5 hover:border-steam-accent/40 transition group">
-                <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                    <span>Entertainment Efficiency</span>
-                    <span class="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition">
-                        <i class="ph-fill ph-trend-down text-lg"></i>
-                    </span>
-                </div>
-                <div class="mt-3 flex items-baseline gap-2">
-                    <span id="kpiCostPerHour" class="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-400">CHF 0.30</span>
-                    <span class="text-xs text-slate-400 font-mono">/ hour</span>
-                </div>
-                <div class="mt-3 pt-3 border-t border-steam-border/60 flex items-center justify-between text-xs">
-                    <span class="text-slate-400">Avg per Game:</span>
-                    <span id="kpiAvgGamePrice" class="font-mono font-semibold text-slate-200">CHF 44.48</span>
-                </div>
-            </div>
-
-            <!-- Card 4: Library Completion & Pile of Shame -->
-            <div class="glass-panel rounded-2xl p-5 hover:border-steam-accent/40 transition group">
-                <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                    <span>Library Played Rate</span>
-                    <span class="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center group-hover:scale-110 transition">
-                        <i class="ph-fill ph-books text-lg"></i>
-                    </span>
-                </div>
-                <div class="mt-3 flex items-baseline justify-between">
-                    <span id="kpiCompletionPct" class="text-2xl sm:text-3xl font-extrabold font-mono text-white">78.6%</span>
-                    <span id="kpiPlayedCount" class="text-xs font-mono text-slate-400">22 / 28 Played</span>
-                </div>
-                <!-- Progress Bar -->
-                <div class="mt-3 w-full bg-slate-900 h-2 rounded-full overflow-hidden p-0.5 border border-steam-border">
-                    <div id="kpiCompletionBar" class="bg-gradient-to-r from-steam-blue to-emerald-400 h-full rounded-full transition-all duration-500" style="width: 78%"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Visual Breakdown Row: Playtime Distribution & Pile of Shame -->
-        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Left 2 Cols: Top 5 Most Played Games Breakdown -->
-            <div class="lg:col-span-2 glass-panel rounded-2xl p-5 sm:p-6">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+                <!-- Right 1 Col: Pile of Shame & Value Highlights -->
+                <div class="glass-panel rounded-2xl p-5 sm:p-6 flex flex-col justify-between space-y-4">
                     <div>
                         <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                            <i class="ph-fill ph-chart-bar text-steam-accent"></i>
-                            Playtime Distribution (Top 5 Addictions)
+                            <i class="ph-fill ph-fire text-amber-400"></i>
+                            Backlog & Value Insights
                         </h2>
-                        <p class="text-xs text-slate-400">How your total gaming hours are concentrated across your top titles</p>
+                        <p class="text-xs text-slate-400 mt-0.5">Unplayed backlog & best value champions</p>
                     </div>
-                    <span id="top5ShareBadge" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-steam-blue/15 text-steam-accent border border-steam-accent/30 self-start sm:self-auto">
-                        Top 5 = 84% of all playtime
+
+                    <div class="space-y-3">
+                        <!-- Unplayed Waste Box -->
+                        <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/25">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-rose-300">Unplayed Backlog Value</span>
+                                <i class="ph-fill ph-warning-circle text-rose-400 text-lg"></i>
+                            </div>
+                            <div id="shameWorthValue" class="text-2xl font-mono font-extrabold text-rose-400 mt-1">
+                                CHF 214.50
+                            </div>
+                            <p id="shameCountText" class="text-xs text-slate-400 mt-1">
+                                6 games bought that currently have 0.0 hours played.
+                            </p>
+                        </div>
+
+                        <!-- Best Value Champion Box -->
+                        <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Best Value Paid Game</span>
+                                <i class="ph-fill ph-medal text-emerald-400 text-lg"></i>
+                            </div>
+                            <div id="bestValueGameTitle" class="text-base font-bold text-white mt-1 truncate">
+                                Risk of Rain 2
+                            </div>
+                            <p id="bestValueGameStats" class="text-xs font-mono text-emerald-400 mt-0.5">
+                                412 hrs • CHF 0.06 / hour
+                            </p>
+                        </div>
+
+                        <!-- Daily Average -->
+                        <div class="p-4 rounded-xl bg-slate-900/90 border border-steam-border">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Daily Gaming Average</span>
+                                <i class="ph-fill ph-calendar-check text-steam-accent text-lg"></i>
+                            </div>
+                            <div id="dailyAverageHours" class="text-base font-mono font-bold text-white mt-1">
+                                0.95 Hours / Day
+                            </div>
+                            <p class="text-xs text-slate-400 mt-0.5">
+                                Averaged across total account age
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Complete Searchable & Sortable Game Library -->
+            <section class="glass-panel rounded-2xl p-5 sm:p-6">
+                <!-- Header & Filter Tabs -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-steam-border">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="ph-fill ph-game-controller text-steam-accent"></i>
+                            Complete Game Library Breakdown
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Search, sort, and inspect playtime, retail value, and cost per hour</p>
+                    </div>
+
+                    <!-- Filter Tabs -->
+                    <div class="flex flex-wrap items-center gap-1.5 bg-slate-950/80 p-1.5 rounded-xl border border-steam-border">
+                        <button onclick="setLibraryFilter('all')" id="tab-all" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-steam-blue text-slate-950 transition">
+                            All Games
+                        </button>
+                        <button onclick="setLibraryFilter('binge')" id="tab-binge" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
+                            100+ Hrs Club
+                        </button>
+                        <button onclick="setLibraryFilter('shame')" id="tab-shame" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
+                            Unplayed (0h)
+                        </button>
+                        <button onclick="setLibraryFilter('paid')" id="tab-paid" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
+                            Paid Titles Only
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search & Sort Controls -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 my-4">
+                    <div class="relative flex-1 max-w-md">
+                        <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input 
+                            type="text" 
+                            id="gameSearchInput" 
+                            oninput="renderLibraryTable()"
+                            placeholder="Filter library by game title or genre..." 
+                            class="w-full pl-9 pr-4 py-2 bg-slate-950/90 border border-steam-border rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-steam-accent"
+                        >
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-slate-400 font-medium shrink-0">Sort by:</label>
+                        <select id="gameSortSelect" onchange="renderLibraryTable()" class="bg-slate-950 border border-steam-border rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-steam-accent">
+                            <option value="hours-desc">Playtime: High to Low</option>
+                            <option value="hours-asc">Playtime: Low to High</option>
+                            <option value="price-desc">Store Price: High to Low</option>
+                            <option value="price-asc">Store Price: Low to High</option>
+                            <option value="cph-asc">Best Value (Lowest Cost/Hr)</option>
+                            <option value="name-asc">Title (A - Z)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Responsive Table -->
+                <div class="overflow-x-auto -mx-5 sm:mx-0">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-steam-border text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                                <th class="py-3 px-4">Game Title</th>
+                                <th class="py-3 px-4">Playtime</th>
+                                <th class="py-3 px-4">Retail Price</th>
+                                <th class="py-3 px-4 hidden md:table-cell">Current Deal</th>
+                                <th class="py-3 px-4">Cost / Hour</th>
+                                <th class="py-3 px-4 text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="libraryTableBody" class="divide-y divide-steam-border/50 text-sm">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- =============================================================== -->
+        <!-- VIEW 2: ACCVERSUSACC (1v1 ACCOUNT BATTLE ARENA)                 -->
+        <!-- =============================================================== -->
+        <div id="versusModeContainer" class="hidden space-y-6">
+
+            <!-- Dual Fighter Input Control Deck -->
+            <section class="glass-panel rounded-2xl p-5 sm:p-6 shadow-xl border border-steam-accent/30">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 mb-5 border-b border-steam-border">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">1v1 ARENA</span>
+                            <h2 class="text-lg sm:text-xl font-extrabold text-white">AccVersusAcc — Head-to-Head Showdown</h2>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">Enter two SteamID64s or custom vanity usernames to compare account value, playtime, levels, and shared games</p>
+                    </div>
+
+                    <!-- Quick Matchup Presets -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="useCurrentProfileAsPlayer1()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-steam-accent border border-steam-border transition">
+                            Use My Loaded Profile as P1
+                        </button>
+                        <button onclick="loadVersusPreset('core', 'collector')" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 border border-steam-border transition">
+                            Demo: Core vs Whale
+                        </button>
+                        <button onclick="loadVersusPreset('core', 'competitive')" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 border border-steam-border transition">
+                            Demo: Core vs Esports
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Player 1 & Player 2 Search Inputs -->
+                <div class="grid grid-cols-1 lg:grid-cols-11 gap-4 items-center">
+                    <!-- Player 1 Input Box -->
+                    <div class="lg:col-span-5 p-3.5 rounded-xl bg-slate-950/70 border border-cyan-500/30">
+                        <label class="block text-[11px] font-mono uppercase tracking-wider text-cyan-400 font-bold mb-1.5">
+                            Challenger 1 (Blue Corner)
+                        </label>
+                        <div class="flex gap-2">
+                            <input 
+                                type="text" 
+                                id="versusP1Input" 
+                                value="76561198042819384"
+                                placeholder="SteamID64 or Vanity Name..." 
+                                class="w-full px-3 py-2 bg-slate-900 border border-steam-border rounded-lg text-xs sm:text-sm text-white font-mono focus:outline-none focus:border-cyan-400"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Center Start Battle Button -->
+                    <div class="lg:col-span-1 flex justify-center">
+                        <button onclick="handleStartVersusBattle()" id="versusBattleBtn" class="w-full lg:w-12 h-11 lg:h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-extrabold text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20 transition">
+                            <i class="ph-bold ph-swords text-lg"></i>
+                            <span class="lg:hidden">Start 1v1 Battle</span>
+                        </button>
+                    </div>
+
+                    <!-- Player 2 Input Box -->
+                    <div class="lg:col-span-5 p-3.5 rounded-xl bg-slate-950/70 border border-purple-500/30">
+                        <label class="block text-[11px] font-mono uppercase tracking-wider text-purple-400 font-bold mb-1.5">
+                            Challenger 2 (Purple Corner)
+                        </label>
+                        <div class="flex gap-2">
+                            <input 
+                                type="text" 
+                                id="versusP2Input" 
+                                value="76561197960287930"
+                                placeholder="Friend's SteamID64 or Vanity Name..." 
+                                class="w-full px-3 py-2 bg-slate-900 border border-steam-border rounded-lg text-xs sm:text-sm text-white font-mono focus:outline-none focus:border-purple-400"
+                            >
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Head-to-Head Fighters Banner & Overall Winner Verdict -->
+            <section class="glass-panel rounded-2xl p-5 sm:p-6 relative overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+                    
+                    <!-- Player 1 Card -->
+                    <div id="versusP1Card" class="p-4 rounded-2xl bg-cyan-500/5 border border-cyan-500/30 flex items-center gap-4">
+                        <img id="vP1Avatar" src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&w=200&q=80" onerror="this.src='https://placehold.co/120x120/1b2838/66c0f4?text=P1'" alt="P1" class="w-16 h-16 rounded-2xl object-cover border-2 border-cyan-400 shrink-0">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span id="vP1Crown" class="hidden text-xs px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/40 font-bold">WINNER</span>
+                                <h3 id="vP1Name" class="text-lg font-extrabold text-white truncate">CyberSwiss_99</h3>
+                            </div>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span id="vP1Level" class="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">LVL 67</span>
+                                <span id="vP1SteamId" class="text-xs font-mono text-slate-400 truncate">76561198042819384</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Center Scoreboard Verdict -->
+                    <div class="text-center py-2 px-4 rounded-2xl bg-slate-950/80 border border-steam-border">
+                        <div class="text-[11px] font-mono uppercase tracking-widest text-slate-400">Category Score</div>
+                        <div class="flex items-center justify-center gap-4 my-1">
+                            <span id="vScoreP1" class="text-3xl sm:text-4xl font-extrabold font-mono text-cyan-400">4</span>
+                            <span class="text-sm font-mono text-slate-500">VS</span>
+                            <span id="vScoreP2" class="text-3xl sm:text-4xl font-extrabold font-mono text-purple-400">2</span>
+                        </div>
+                        <div id="vWinnerSummaryText" class="text-xs font-semibold text-amber-300">
+                            CyberSwiss_99 dominates 4 of 6 categories!
+                        </div>
+                    </div>
+
+                    <!-- Player 2 Card -->
+                    <div id="versusP2Card" class="p-4 rounded-2xl bg-purple-500/5 border border-purple-500/30 flex items-center gap-4 lg:flex-row-reverse lg:text-right">
+                        <img id="vP2Avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" onerror="this.src='https://placehold.co/120x120/1b2838/c084fc?text=P2'" alt="P2" class="w-16 h-16 rounded-2xl object-cover border-2 border-purple-400 shrink-0">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center lg:justify-end gap-2 flex-wrap">
+                                <h3 id="vP2Name" class="text-lg font-extrabold text-white truncate">ArchonCollector</h3>
+                                <span id="vP2Crown" class="hidden text-xs px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/40 font-bold">WINNER</span>
+                            </div>
+                            <div class="flex items-center lg:justify-end gap-2 mt-1">
+                                <span id="vP2SteamId" class="text-xs font-mono text-slate-400 truncate">76561197960287930</span>
+                                <span id="vP2Level" class="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-400/30">LVL 142</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- 6 Tug-of-War Metric Bars -->
+            <section class="glass-panel rounded-2xl p-5 sm:p-6">
+                <div class="flex items-center justify-between mb-5">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                            <i class="ph-fill ph-scales text-steam-accent"></i>
+                            Head-to-Head Category Breakdown
+                        </h3>
+                        <p class="text-xs text-slate-400">Tug-of-war bars comparing both accounts across 6 core metrics</p>
+                    </div>
+                </div>
+
+                <div id="versusMetricsContainer" class="space-y-4">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </section>
+
+            <!-- Shared Games Showdown -->
+            <section class="glass-panel rounded-2xl p-5 sm:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                            <i class="ph-fill ph-intersect text-amber-400"></i>
+                            Shared Games Showdown (Owned by Both Players)
+                        </h3>
+                        <p class="text-xs text-slate-400">Who put more hours into the games you both own?</p>
+                    </div>
+                    <span id="sharedGamesCountBadge" class="text-xs font-mono px-3 py-1 rounded-lg bg-slate-900 text-slate-300 border border-steam-border">
+                        5 Shared Titles Found
                     </span>
                 </div>
 
-                <!-- Dynamic Bars Container -->
-                <div id="topGamesBarsContainer" class="space-y-3.5">
-                    <!-- Populated via JS -->
+                <div id="sharedGamesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    <!-- Populated dynamically via JS -->
                 </div>
-            </div>
+            </section>
 
-            <!-- Right 1 Col: Pile of Shame & Value Highlights -->
-            <div class="glass-panel rounded-2xl p-5 sm:p-6 flex flex-col justify-between space-y-4">
-                <div>
-                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                        <i class="ph-fill ph-fire text-amber-400"></i>
-                        Pile of Shame & Insights
-                    </h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Unplayed backlog & best value champions</p>
-                </div>
-
-                <div class="space-y-3">
-                    <!-- Unplayed Waste Box -->
-                    <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/25">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-rose-300">Unplayed Games Worth</span>
-                            <i class="ph-fill ph-warning-circle text-rose-400 text-lg"></i>
-                        </div>
-                        <div id="shameWorthValue" class="text-2xl font-mono font-extrabold text-rose-400 mt-1">
-                            CHF 214.50
-                        </div>
-                        <p id="shameCountText" class="text-xs text-slate-400 mt-1">
-                            6 games bought that currently have 0.0 hours played.
-                        </p>
-                    </div>
-
-                    <!-- Best Value Champion Box -->
-                    <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Best Value Paid Game</span>
-                            <i class="ph-fill ph-medal text-emerald-400 text-lg"></i>
-                        </div>
-                        <div id="bestValueGameTitle" class="text-base font-bold text-white mt-1 truncate">
-                            Risk of Rain 2
-                        </div>
-                        <p id="bestValueGameStats" class="text-xs font-mono text-emerald-400 mt-0.5">
-                            412 hrs • CHF 0.06 / hour
-                        </p>
-                    </div>
-
-                    <!-- Most Expensive Unplayed or Least Efficient -->
-                    <div class="p-4 rounded-xl bg-slate-900/90 border border-steam-border">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Daily Gaming Average</span>
-                            <i class="ph-fill ph-calendar-check text-steam-accent text-lg"></i>
-                        </div>
-                        <div id="dailyAverageHours" class="text-base font-mono font-bold text-white mt-1">
-                            0.95 Hours / Day
-                        </div>
-                        <p class="text-xs text-slate-400 mt-0.5">
-                            Averaged across total account age
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Complete Searchable & Sortable Game Library -->
-        <section class="glass-panel rounded-2xl p-5 sm:p-6">
-            <!-- Header & Filter Tabs -->
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-steam-border">
-                <div>
-                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                        <i class="ph-fill ph-game-controller text-steam-accent"></i>
-                        Complete Game Library Breakdown
-                    </h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Click any column or use filters to inspect playtime, retail value, and cost per hour</p>
-                </div>
-
-                <!-- Filter Tabs -->
-                <div class="flex flex-wrap items-center gap-1.5 bg-slate-950/80 p-1.5 rounded-xl border border-steam-border">
-                    <button onclick="setLibraryFilter('all')" id="tab-all" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-steam-blue text-slate-950 transition">
-                        All Games
-                    </button>
-                    <button onclick="setLibraryFilter('binge')" id="tab-binge" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
-                        🔥 100+ Hrs Club
-                    </button>
-                    <button onclick="setLibraryFilter('shame')" id="tab-shame" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
-                        🕸️ Pile of Shame (0h)
-                    </button>
-                    <button onclick="setLibraryFilter('paid')" id="tab-paid" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
-                        💰 Paid Titles Only
-                    </button>
-                </div>
-            </div>
-
-            <!-- Search & Sort Controls -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 my-4">
-                <div class="relative flex-1 max-w-md">
-                    <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input 
-                        type="text" 
-                        id="gameSearchInput" 
-                        oninput="renderLibraryTable()"
-                        placeholder="Filter library by game title or genre..." 
-                        class="w-full pl-9 pr-4 py-2 bg-slate-950/90 border border-steam-border rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-steam-accent"
-                    >
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <label class="text-xs text-slate-400 font-medium shrink-0">Sort by:</label>
-                    <select id="gameSortSelect" onchange="renderLibraryTable()" class="bg-slate-950 border border-steam-border rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-steam-accent">
-                        <option value="hours-desc">Playtime: High to Low</option>
-                        <option value="hours-asc">Playtime: Low to High</option>
-                        <option value="price-desc">Store Price: High to Low</option>
-                        <option value="price-asc">Store Price: Low to High</option>
-                        <option value="cph-asc">Best Value (Lowest Cost/Hr)</option>
-                        <option value="name-asc">Title (A - Z)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Responsive Table -->
-            <div class="overflow-x-auto -mx-5 sm:mx-0">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="border-b border-steam-border text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                            <th class="py-3 px-4">Game Title</th>
-                            <th class="py-3 px-4">Playtime</th>
-                            <th class="py-3 px-4">Retail Price</th>
-                            <th class="py-3 px-4 hidden md:table-cell">Current Deal</th>
-                            <th class="py-3 px-4">Cost / Hour</th>
-                            <th class="py-3 px-4 text-right">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="libraryTableBody" class="divide-y divide-steam-border/50 text-sm">
-                        <!-- Populated via JS -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        </div>
 
     </main>
 
@@ -536,60 +720,60 @@
                         Valve's Steam Web API (<code class="text-steam-accent font-mono">api.steampowered.com</code>) blocks direct browser JavaScript requests via <strong>CORS</strong> so strangers can't steal your private Steam API Key from your website's source code. By dropping the file below into your GitHub repository, Netlify (or Vercel) automatically creates a secure backend endpoint for free!
                     </p>
                 </div>
-
-                <!-- Step by Step Checklist -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div class="p-3.5 rounded-xl bg-slate-900/90 border border-steam-border">
-                        <span class="text-xs font-mono font-bold text-steam-accent">STEP 1</span>
-                        <h5 class="font-bold text-white mt-1">Push to GitHub</h5>
-                        <p class="text-xs text-slate-400 mt-1">Save this <code class="text-slate-200">index.html</code> file and create <code class="text-slate-200">netlify/functions/steam.js</code> in your GitHub repository.</p>
-                    </div>
-                    <div class="p-3.5 rounded-xl bg-slate-900/90 border border-steam-border">
-                        <span class="text-xs font-mono font-bold text-steam-accent">STEP 2</span>
-                        <h5 class="font-bold text-white mt-1">Import to Netlify</h5>
-                        <p class="text-xs text-slate-400 mt-1">Log into <strong>Netlify.com</strong> or <strong>Vercel.com</strong>, click <em>"Add New Site → Import from GitHub"</em> and select your repo.</p>
-                    </div>
-                    <div class="p-3.5 rounded-xl bg-slate-900/90 border border-steam-border">
-                        <span class="text-xs font-mono font-bold text-steam-accent">STEP 3</span>
-                        <h5 class="font-bold text-white mt-1">Add API Env Variable</h5>
-                        <p class="text-xs text-slate-400 mt-1">In Netlify Site Settings → <em>Environment Variables</em>, add <code class="text-emerald-400">STEAM_API_KEY</code> from <span class="underline">steamcommunity.com/dev/apikey</span>.</p>
-                    </div>
-                </div>
-
-                <!-- Ready-to-Copy Serverless Code -->
+                    <!-- Ready-to-Copy Serverless Code -->
                 <div>
                     <div class="flex items-center justify-between mb-2">
-                        <span class="font-mono text-xs font-bold text-steam-accent">File: netlify/functions/steam.js</span>
+                        <span class="font-mono text-xs font-bold text-steam-accent">File: netlify/functions/steam.js (with GetSteamLevel & Vanity URL Support)</span>
                         <button onclick="copyServerlessCode()" class="px-3 py-1 rounded-lg bg-steam-blue hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition">
                             <i class="ph-bold ph-copy"></i>
-                            <span>Copy Backend Code</span>
+                            <span>Copy Updated Backend Code</span>
                         </button>
                     </div>
-                    <pre id="serverlessCodeBlock" class="p-4 rounded-xl bg-slate-950 border border-steam-border font-mono text-xs text-cyan-300 overflow-x-auto leading-relaxed">// Save as: netlify/functions/steam.js (or api/steam.js on Vercel)
+                    <pre id="serverlessCodeBlock" class="p-4 rounded-xl bg-slate-950 border border-steam-border font-mono text-xs text-cyan-300 overflow-x-auto leading-relaxed">// Save as: netlify/functions/steam.js
 exports.handler = async function(event) {
-  const steamId = event.queryStringParameters.steamid;
   const apiKey = process.env.STEAM_API_KEY;
+  let rawInput = (event.queryStringParameters.steamId || event.queryStringParameters.steamid || "").trim();
 
-  if (!steamId || !apiKey) {
-    return { statusCode: 400, body: JSON.stringify({ error: "Missing steamid or STEAM_API_KEY" }) };
+  if (!rawInput || !apiKey) {
+    return { statusCode: 400, body: JSON.stringify({ error: "Missing steamId or STEAM_API_KEY" }) };
   }
 
-  try {
-    // 1. Fetch Player Summary (Avatar, Name, Creation Date)
-    const profileUrl = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${apiKey}&steamids=${steamId}`;
-    // 2. Fetch Owned Games + Playtime Forever
-    const gamesUrl = `https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${apiKey}&steamid=${steamId}&include_appinfo=1&include_played_free_games=1&format=json`;
+  // Strip full Steam profile URLs if pasted directly
+  rawInput = rawInput.replace(/^https?:\/\/steamcommunity\.com\/(id|profiles)\//i, "").replace(/\/.*$/, "");
 
-    const [profileRes, gamesRes] = await Promise.all([fetch(profileUrl), fetch(gamesUrl)]);
+  try {
+    let steamId = rawInput;
+
+    // 1. If input is a custom Vanity Username (not a 17-digit SteamID64), resolve it first
+    if (!/^\d{17}$/.test(steamId)) {
+      const vanityUrl = `https://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=${apiKey}&vanityurl=${encodeURIComponent(steamId)}`;
+      const vanityRes = await fetch(vanityUrl);
+      const vanityData = await vanityRes.json();
+      if (vanityData.response && vanityData.response.success === 1) {
+        steamId = vanityData.response.steamid;
+      } else {
+        return { statusCode: 404, body: JSON.stringify({ error: "Could not resolve Steam vanity username" }) };
+      }
+    }
+
+    // 2. Fetch Player Summary, Owned Games, and Steam Level in parallel
+    const [profileRes, gamesRes, levelRes] = await Promise.all([
+      fetch(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${apiKey}&steamids=${steamId}`),
+      fetch(`https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${apiKey}&steamid=${steamId}&include_appinfo=1&include_played_free_games=1&format=json`),
+      fetch(`https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/?key=${apiKey}&steamid=${steamId}`)
+    ]);
+
     const profileData = await profileRes.json();
     const gamesData = await gamesRes.json();
+    const levelData = await levelRes.json();
 
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
       body: JSON.stringify({
         player: profileData.response?.players?.[0] || null,
-        games: gamesData.response?.games || []
+        games: gamesData.response?.games || [],
+        level: levelData.response?.player_level ?? null
       })
     };
   } catch (err) {
@@ -670,13 +854,27 @@ exports.handler = async function(event) {
         let currentCurrency = 'CHF';
         let currentFilter = 'all';
         let currentProfileKey = 'core';
+        let currentAppMode = 'single'; // 'single' or 'versus'
 
-        // Rich Preset Profiles with real Steam AppIDs for authentic Steam CDN header images
+        // Known Steam Game Retail Price Lookup Dictionary (for instant accurate pricing of common Steam AppIDs)
+        const KNOWN_APP_PRICES_USD = {
+            730: 14.99, 1086940: 59.99, 1245620: 59.99, 632360: 24.99, 1091500: 59.99,
+            553850: 39.99, 292030: 39.99, 413150: 14.99, 1172470: 0.00, 1145360: 24.99,
+            427520: 35.00, 105600: 9.99, 892970: 19.99, 1174180: 59.99, 548430: 29.99,
+            367520: 14.99, 2379780: 14.99, 1966720: 9.99, 646570: 24.99, 275850: 59.99,
+            1593500: 49.99, 620: 9.99, 1716740: 69.99, 1888930: 59.99, 814380: 59.99,
+            632470: 39.99, 753640: 24.99, 504230: 19.99, 281990: 39.99, 1158310: 49.99,
+            294100: 34.99, 289070: 59.99, 1363080: 39.99, 2050650: 39.99, 223850: 34.99,
+            1623730: 29.99, 1817070: 59.99, 570: 0.00, 252490: 39.99, 359550: 19.99,
+            578080: 29.99, 824270: 9.99, 1938090: 69.99, 440: 0.00, 271590: 29.99
+        };
+
+        // Rich Preset Profiles with real Steam AppIDs
         const PRESET_PROFILES = {
             core: {
                 name: 'CyberSwiss_99',
                 steamId: '76561198042819384',
-                level: 64,
+                level: 67,
                 createdYear: 2014,
                 badges: 48,
                 genre: 'Action RPG & Tactical Shooter',
@@ -687,10 +885,10 @@ exports.handler = async function(event) {
                     { appid: 1245620, title: 'ELDEN RING', hours: 268.0, retailUsd: 59.99, saleUsd: 35.99, genre: 'Action RPG' },
                     { appid: 632360, title: 'Risk of Rain 2', hours: 412.2, retailUsd: 24.99, saleUsd: 8.24, genre: 'Roguelike' },
                     { appid: 1091500, title: 'Cyberpunk 2077', hours: 184.5, retailUsd: 59.99, saleUsd: 29.99, genre: 'Open World RPG' },
-                    { appid: 553850, title: 'HELLDIVERS™ 2', hours: 156.8, retailUsd: 39.99, saleUsd: 31.99, genre: 'Co-op Shooter' },
+                    { appid: 553850, title: 'HELLDIVERS 2', hours: 156.8, retailUsd: 39.99, saleUsd: 31.99, genre: 'Co-op Shooter' },
                     { appid: 292030, title: 'The Witcher 3: Wild Hunt', hours: 149.0, retailUsd: 39.99, saleUsd: 9.99, genre: 'Action RPG' },
                     { appid: 413150, title: 'Stardew Valley', hours: 128.4, retailUsd: 14.99, saleUsd: 9.99, genre: 'Simulation' },
-                    { appid: 1172470, title: 'Apex Legends™', hours: 215.0, retailUsd: 0.00, saleUsd: 0.00, genre: 'Battle Royale' },
+                    { appid: 1172470, title: 'Apex Legends', hours: 215.0, retailUsd: 0.00, saleUsd: 0.00, genre: 'Battle Royale' },
                     { appid: 1145360, title: 'Hades', hours: 94.2, retailUsd: 24.99, saleUsd: 9.99, genre: 'Action Roguelike' },
                     { appid: 427520, title: 'Factorio', hours: 118.6, retailUsd: 35.00, saleUsd: 35.00, genre: 'Automation' },
                     { appid: 105600, title: 'Terraria', hours: 88.5, retailUsd: 9.99, saleUsd: 4.99, genre: 'Sandbox' },
@@ -704,10 +902,9 @@ exports.handler = async function(event) {
                     { appid: 275850, title: "No Man's Sky", hours: 44.1, retailUsd: 59.99, saleUsd: 23.99, genre: 'Space Survival' },
                     { appid: 1593500, title: 'God of War', hours: 38.5, retailUsd: 49.99, saleUsd: 24.99, genre: 'Action Adventure' },
                     { appid: 620, title: 'Portal 2', hours: 19.4, retailUsd: 9.99, saleUsd: 0.99, genre: 'Puzzle' },
-                    // Unplayed Pile of Shame (0 hours)
                     { appid: 1716740, title: 'Starfield', hours: 0.0, retailUsd: 69.99, saleUsd: 41.99, genre: 'Space RPG' },
-                    { appid: 1888930, title: 'The Last of Us™ Part I', hours: 0.0, retailUsd: 59.99, saleUsd: 35.99, genre: 'Action Adventure' },
-                    { appid: 814380, title: 'Sekiro™: Shadows Die Twice', hours: 0.0, retailUsd: 59.99, saleUsd: 29.99, genre: 'Souls-like' },
+                    { appid: 1888930, title: 'The Last of Us Part I', hours: 0.0, retailUsd: 59.99, saleUsd: 35.99, genre: 'Action Adventure' },
+                    { appid: 814380, title: 'Sekiro: Shadows Die Twice', hours: 0.0, retailUsd: 59.99, saleUsd: 29.99, genre: 'Souls-like' },
                     { appid: 632470, title: 'Disco Elysium - The Final Cut', hours: 0.0, retailUsd: 39.99, saleUsd: 9.99, genre: 'Narrative RPG' },
                     { appid: 753640, title: 'Outer Wilds', hours: 0.0, retailUsd: 24.99, saleUsd: 14.99, genre: 'Exploration' },
                     { appid: 504230, title: 'Celeste', hours: 0.0, retailUsd: 19.99, saleUsd: 4.99, genre: 'Platformer' }
@@ -725,16 +922,16 @@ exports.handler = async function(event) {
                     { appid: 281990, title: 'Stellaris', hours: 840.0, retailUsd: 39.99, saleUsd: 9.99, genre: 'Grand Strategy' },
                     { appid: 1158310, title: 'Crusader Kings III', hours: 615.2, retailUsd: 49.99, saleUsd: 24.99, genre: 'Grand Strategy' },
                     { appid: 294100, title: 'RimWorld', hours: 920.5, retailUsd: 34.99, saleUsd: 27.99, genre: 'Colony Sim' },
-                    { appid: 289070, title: 'Sid Meier’s Civilization VI', hours: 410.0, retailUsd: 59.99, saleUsd: 5.99, genre: 'Turn-Based Strategy' },
+                    { appid: 289070, title: "Sid Meier's Civilization VI", hours: 410.0, retailUsd: 59.99, saleUsd: 5.99, genre: 'Turn-Based Strategy' },
                     { appid: 1086940, title: "Baldur's Gate 3", hours: 215.0, retailUsd: 59.99, saleUsd: 47.99, genre: 'CRPG' },
                     { appid: 1363080, title: 'Manor Lords', hours: 0.0, retailUsd: 39.99, saleUsd: 29.99, genre: 'City Builder' },
                     { appid: 2050650, title: 'Resident Evil 4', hours: 0.0, retailUsd: 39.99, saleUsd: 19.99, genre: 'Survival Horror' },
                     { appid: 223850, title: '3DMark', hours: 14.2, retailUsd: 34.99, saleUsd: 8.74, genre: 'Benchmark' },
-                    { appid: 1245620, title: 'ELDEN RING', hours: 0.0, retailUsd: 59.99, saleUsd: 35.99, genre: 'Action RPG' },
-                    { appid: 1091500, title: 'Cyberpunk 2077', hours: 0.0, retailUsd: 59.99, saleUsd: 29.99, genre: 'Open World RPG' },
-                    { appid: 1174180, title: 'Red Dead Redemption 2', hours: 0.0, retailUsd: 59.99, saleUsd: 19.79, genre: 'Open World' },
+                    { appid: 1245620, title: 'ELDEN RING', hours: 85.0, retailUsd: 59.99, saleUsd: 35.99, genre: 'Action RPG' },
+                    { appid: 1091500, title: 'Cyberpunk 2077', hours: 42.0, retailUsd: 59.99, saleUsd: 29.99, genre: 'Open World RPG' },
+                    { appid: 1174180, title: 'Red Dead Redemption 2', hours: 19.5, retailUsd: 59.99, saleUsd: 19.79, genre: 'Open World' },
                     { appid: 1623730, title: 'Palworld', hours: 0.0, retailUsd: 29.99, saleUsd: 22.49, genre: 'Survival' },
-                    { appid: 1817070, title: 'Marvel’s Spider-Man Remastered', hours: 0.0, retailUsd: 59.99, saleUsd: 35.99, genre: 'Action' }
+                    { appid: 1817070, title: "Marvel's Spider-Man Remastered", hours: 0.0, retailUsd: 59.99, saleUsd: 35.99, genre: 'Action' }
                 ]
             },
             competitive: {
@@ -752,14 +949,63 @@ exports.handler = async function(event) {
                     { appid: 359550, title: "Tom Clancy's Rainbow Six Siege", hours: 685.4, retailUsd: 19.99, saleUsd: 7.99, genre: 'Tactical FPS' },
                     { appid: 578080, title: 'PUBG: BATTLEGROUNDS', hours: 420.0, retailUsd: 29.99, saleUsd: 0.00, genre: 'Battle Royale' },
                     { appid: 632360, title: 'Risk of Rain 2', hours: 190.2, retailUsd: 24.99, saleUsd: 8.24, genre: 'Roguelike' },
-                    { appid: 824270, title: 'KovaaK’s', hours: 245.0, retailUsd: 9.99, saleUsd: 4.99, genre: 'Aim Trainer' },
-                    { appid: 1938090, title: 'Call of Duty®', hours: 130.5, retailUsd: 69.99, saleUsd: 45.49, genre: 'FPS' }
+                    { appid: 824270, title: "KovaaK's", hours: 245.0, retailUsd: 9.99, saleUsd: 4.99, genre: 'Aim Trainer' },
+                    { appid: 1938090, title: 'Call of Duty', hours: 130.5, retailUsd: 69.99, saleUsd: 45.49, genre: 'FPS' }
                 ]
             }
         };
 
-        // Deep copy active profile state
+        // Deep copy active profile state for Single Mode and Versus Mode
         let activeProfile = JSON.parse(JSON.stringify(PRESET_PROFILES.core));
+        let versusP1Profile = JSON.parse(JSON.stringify(PRESET_PROFILES.core));
+        let versusP2Profile = JSON.parse(JSON.stringify(PRESET_PROFILES.collector));
+
+        // Switch between Single Profile and AccVersusAcc Mode
+        function switchAppMode(mode) {
+            currentAppMode = mode;
+            const singleContainer = document.getElementById('singleModeContainer');
+            const versusContainer = document.getElementById('versusModeContainer');
+            const singleBtn = document.getElementById('mode-single-btn');
+            const versusBtn = document.getElementById('mode-versus-btn');
+
+            if (mode === 'single') {
+                singleContainer.classList.remove('hidden');
+                versusContainer.classList.add('hidden');
+                singleBtn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-steam-blue text-slate-950 shadow';
+                versusBtn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-white';
+                updateDashboard();
+            } else {
+                singleContainer.classList.add('hidden');
+                versusContainer.classList.remove('hidden');
+                versusBtn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 shadow';
+                singleBtn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-white';
+                renderVersusArena();
+            }
+        }
+
+        // Send currently loaded Single Profile into Player 1 slot of AccVersusAcc
+        function sendCurrentToVersus() {
+            versusP1Profile = JSON.parse(JSON.stringify(activeProfile));
+            document.getElementById('versusP1Input').value = versusP1Profile.steamId;
+            switchAppMode('versus');
+            showToast(`Loaded ${versusP1Profile.name} into Challenger 1 slot!`, 'info');
+        }
+
+        function useCurrentProfileAsPlayer1() {
+            versusP1Profile = JSON.parse(JSON.stringify(activeProfile));
+            document.getElementById('versusP1Input').value = versusP1Profile.steamId;
+            renderVersusArena();
+            showToast(`Updated Challenger 1 to ${versusP1Profile.name}`, 'success');
+        }
+
+        function loadVersusPreset(p1Key, p2Key) {
+            versusP1Profile = JSON.parse(JSON.stringify(PRESET_PROFILES[p1Key]));
+            versusP2Profile = JSON.parse(JSON.stringify(PRESET_PROFILES[p2Key]));
+            document.getElementById('versusP1Input').value = versusP1Profile.steamId;
+            document.getElementById('versusP2Input').value = versusP2Profile.steamId;
+            renderVersusArena();
+            showToast(`Battle Loaded: ${versusP1Profile.name} vs ${versusP2Profile.name}!`, 'info');
+        }
 
         // Format currency helper
         function formatMoney(usdAmount) {
@@ -798,6 +1044,9 @@ exports.handler = async function(event) {
                 }
             });
             updateDashboard();
+            if (currentAppMode === 'versus') {
+                renderVersusArena();
+            }
         }
 
         // Switch Preset Profile
@@ -816,31 +1065,17 @@ exports.handler = async function(event) {
             });
 
             updateDashboard();
-            showToast(`Loaded "${activeProfile.name}" profile (${activeProfile.games.length} games)`, 'info');
+            showToast(`Loaded "${activeProfile.name}" (LVL ${activeProfile.level})`, 'info');
         }
 
-        // Calculate & Render All Dashboard Metrics
-        function updateDashboard() {
-            const games = activeProfile.games;
-            const currentYear = new Date().getFullYear();
-            const accountAgeYears = Math.max(1, currentYear - activeProfile.createdYear);
-
-            // Update Profile Header
-            document.getElementById('profileAvatar').src = activeProfile.avatar;
-            document.getElementById('profileName').textContent = activeProfile.name;
-            document.getElementById('profileLevel').textContent = `LVL ${activeProfile.level}`;
-            document.getElementById('profileSteamId').textContent = activeProfile.steamId;
-            document.getElementById('profileYear').textContent = `${activeProfile.createdYear} (${accountAgeYears} Years)`;
-            document.getElementById('profileBadges').textContent = activeProfile.badges;
-            document.getElementById('profileGenre').textContent = activeProfile.genre;
-
-            // Aggregate Totals
+        // Helper: Compute aggregated stats for any profile object
+        function computeProfileMetrics(profile) {
+            const games = profile.games || [];
             let totalRetailUsd = 0;
             let totalSaleUsd = 0;
             let totalHours = 0;
             let playedCount = 0;
             let unplayedWorthUsd = 0;
-
             let bestValueGame = null;
             let lowestCostPerHour = Infinity;
 
@@ -848,7 +1083,6 @@ exports.handler = async function(event) {
                 totalRetailUsd += g.retailUsd;
                 totalSaleUsd += g.saleUsd;
                 totalHours += g.hours;
-
                 if (g.hours > 0) {
                     playedCount++;
                     if (g.retailUsd > 0) {
@@ -868,36 +1102,434 @@ exports.handler = async function(event) {
             const completionPct = totalGamesCount > 0 ? ((playedCount / totalGamesCount) * 100) : 0;
             const overallCostPerHourUsd = totalHours > 0 ? (totalRetailUsd / totalHours) : 0;
             const avgGamePriceUsd = totalGamesCount > 0 ? (totalRetailUsd / totalGamesCount) : 0;
-            const totalDays = (totalHours / 24).toFixed(1);
+
+            return {
+                totalRetailUsd,
+                totalSaleUsd,
+                totalHours,
+                playedCount,
+                unplayedCount,
+                totalGamesCount,
+                unplayedWorthUsd,
+                completionPct,
+                overallCostPerHourUsd,
+                avgGamePriceUsd,
+                bestValueGame,
+                lowestCostPerHour
+            };
+        }
+
+        // Calculate & Render Single Profile Dashboard Metrics
+        function updateDashboard() {
+            const currentYear = new Date().getFullYear();
+            const accountAgeYears = Math.max(1, currentYear - (activeProfile.createdYear || 2016));
+            const stats = computeProfileMetrics(activeProfile);
+
+            // Update Profile Header including id="profile-level"
+            document.getElementById('profileAvatar').src = activeProfile.avatar;
+            document.getElementById('profileName').textContent = activeProfile.name;
+            document.getElementById('profile-level').textContent = `LVL ${activeProfile.level ?? 0}`;
+            document.getElementById('profileSteamId').textContent = activeProfile.steamId;
+            document.getElementById('profileSteamLink').href = `https://steamcommunity.com/profiles/${activeProfile.steamId}`;
+            document.getElementById('profileYear').textContent = `${activeProfile.createdYear} (${accountAgeYears} Years)`;
+            document.getElementById('profileGamesCount').textContent = stats.totalGamesCount;
+            document.getElementById('profileGenre').textContent = activeProfile.genre || 'Steam Gaming Library';
+
+            const totalDays = (stats.totalHours / 24).toFixed(1);
 
             // Populate KPI Cards
-            document.getElementById('kpiRetailWorth').textContent = formatMoney(totalRetailUsd);
-            document.getElementById('kpiSaleWorth').textContent = formatMoney(totalSaleUsd);
-            document.getElementById('kpiTotalHours').textContent = `${Math.round(totalHours).toLocaleString()} hrs`;
+            document.getElementById('kpiRetailWorth').textContent = formatMoney(stats.totalRetailUsd);
+            document.getElementById('kpiSaleWorth').textContent = formatMoney(stats.totalSaleUsd);
+            document.getElementById('kpiTotalHours').textContent = `${Math.round(stats.totalHours).toLocaleString()} hrs`;
             document.getElementById('kpiTotalDays').textContent = `${totalDays} Full Days`;
-            document.getElementById('kpiCostPerHour').textContent = formatMoney(overallCostPerHourUsd);
-            document.getElementById('kpiAvgGamePrice').textContent = formatMoney(avgGamePriceUsd);
-            document.getElementById('kpiCompletionPct').textContent = `${completionPct.toFixed(1)}%`;
-            document.getElementById('kpiPlayedCount').textContent = `${playedCount} / ${totalGamesCount} Played`;
-            document.getElementById('kpiCompletionBar').style.width = `${completionPct}%`;
+            document.getElementById('kpiCostPerHour').textContent = formatMoney(stats.overallCostPerHourUsd);
+            document.getElementById('kpiAvgGamePrice').textContent = formatMoney(stats.avgGamePriceUsd);
+            document.getElementById('kpiCompletionPct').textContent = `${stats.completionPct.toFixed(1)}%`;
+            document.getElementById('kpiPlayedCount').textContent = `${stats.playedCount} / ${stats.totalGamesCount} Played`;
+            document.getElementById('kpiCompletionBar').style.width = `${stats.completionPct}%`;
 
             // Populate Pile of Shame & Insights
-            document.getElementById('shameWorthValue').textContent = formatMoney(unplayedWorthUsd);
-            document.getElementById('shameCountText').textContent = `${unplayedCount} game${unplayedCount === 1 ? '' : 's'} bought with 0.0 hours played.`;
+            document.getElementById('shameWorthValue').textContent = formatMoney(stats.unplayedWorthUsd);
+            document.getElementById('shameCountText').textContent = `${stats.unplayedCount} game${stats.unplayedCount === 1 ? '' : 's'} bought with 0.0 hours played.`;
 
-            if (bestValueGame) {
-                document.getElementById('bestValueGameTitle').textContent = bestValueGame.title;
-                document.getElementById('bestValueGameStats').textContent = `${bestValueGame.hours.toFixed(1)} hrs • ${formatMoney(lowestCostPerHour)} / hour`;
+            if (stats.bestValueGame) {
+                document.getElementById('bestValueGameTitle').textContent = stats.bestValueGame.title;
+                document.getElementById('bestValueGameStats').textContent = `${stats.bestValueGame.hours.toFixed(1)} hrs • ${formatMoney(stats.lowestCostPerHour)} / hour`;
             }
 
-            const dailyAvg = totalHours / (accountAgeYears * 365);
+            const dailyAvg = stats.totalHours / (accountAgeYears * 365);
             document.getElementById('dailyAverageHours').textContent = `${dailyAvg.toFixed(2)} Hours / Day`;
 
             // Render Top 5 Most Played Bars
-            renderTop5Bars(games, totalHours);
+            renderTop5Bars(activeProfile.games, stats.totalHours);
 
             // Render Library Table
             renderLibraryTable();
+        }
+
+        // Fetch a Steam Profile from the Netlify Serverless Function (or fallback if local)
+        async function fetchSteamAccountData(rawInput) {
+            const endpoint = document.getElementById('serverlessEndpointInput').value.trim();
+            try {
+                // Pass both steamId and steamid query params so both versions of steam.js work seamlessly
+                const res = await fetch(`${endpoint}?steamId=${encodeURIComponent(rawInput)}&steamid=${encodeURIComponent(rawInput)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.player && Array.isArray(data.games)) {
+                        const createdYear = data.player.timecreated
+                            ? new Date(data.player.timecreated * 1000).getFullYear()
+                            : 2016;
+
+                        const mappedGames = data.games.map(g => {
+                            const hours = +((g.playtime_forever || 0) / 60).toFixed(1);
+                            const knownPrice = KNOWN_APP_PRICES_USD[g.appid];
+                            const retailUsd = knownPrice !== undefined ? knownPrice : (hours > 25 ? 29.99 : 19.99);
+                            return {
+                                appid: g.appid,
+                                title: g.name || `App ${g.appid}`,
+                                hours,
+                                retailUsd,
+                                saleUsd: +(retailUsd * 0.5).toFixed(2),
+                                genre: 'Steam Library'
+                            };
+                        });
+
+                        // Enrich top 5 most played unknown games with live CheapShark store prices
+                        const topUnknown = [...mappedGames]
+                            .filter(g => KNOWN_APP_PRICES_USD[g.appid] === undefined && g.title)
+                            .sort((a, b) => b.hours - a.hours)
+                            .slice(0, 5);
+
+                        await Promise.all(topUnknown.map(async (game) => {
+                            try {
+                                const csRes = await fetch(`https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(game.title)}&limit=1`);
+                                if (csRes.ok) {
+                                    const csData = await csRes.json();
+                                    if (csData && csData.length > 0 && csData[0].cheapest) {
+                                        const sale = parseFloat(csData[0].cheapest);
+                                        game.saleUsd = sale;
+                                        game.retailUsd = Math.max(sale, +(sale * 1.5).toFixed(2));
+                                    }
+                                }
+                            } catch (err) {
+                                // Ignore individual lookup errors
+                            }
+                        }));
+
+                        return {
+                            isLive: true,
+                            profile: {
+                                name: data.player.personaname || rawInput,
+                                steamId: data.player.steamid || rawInput,
+                                level: (data.level !== null && data.level !== undefined) ? data.level : 67,
+                                createdYear,
+                                badges: Math.max(5, Math.round((data.games.length || 10) * 0.6)),
+                                genre: 'Live Steam Library',
+                                avatar: data.player.avatarfull || 'https://placehold.co/120x120/1b2838/66c0f4?text=STEAM',
+                                games: mappedGames
+                            }
+                        };
+                    }
+                }
+            } catch (e) {
+                // Serverless endpoint not reachable in preview
+            }
+
+            // Check if rawInput matches any preset ID or name
+            const presetMatch = Object.values(PRESET_PROFILES).find(
+                p => p.steamId === rawInput || p.name.toLowerCase() === rawInput.toLowerCase()
+            );
+            if (presetMatch) {
+                return { isLive: false, profile: JSON.parse(JSON.stringify(presetMatch)) };
+            }
+
+            // Deterministic Custom Profile Fallback when testing offline
+            const seed = rawInput.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+            const basePreset = seed % 2 === 0 ? PRESET_PROFILES.core : PRESET_PROFILES.collector;
+            const cloned = JSON.parse(JSON.stringify(basePreset));
+            cloned.steamId = rawInput;
+            cloned.name = rawInput.length === 17 && !isNaN(rawInput) ? `SteamUser_${rawInput.slice(-4)}` : rawInput;
+            cloned.level = 25 + (seed % 95);
+            return { isLive: false, profile: cloned };
+        }
+
+        // Handle Single Account Analyze Button
+        async function handleAnalyzeAccount() {
+            const inputVal = document.getElementById('steamIdInput').value.trim();
+            if (!inputVal) {
+                showToast('Please enter a SteamID64 or Custom Vanity name.', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('analyzeBtn');
+            const orig = btn.innerHTML;
+            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i><span>Analyzing...</span>`;
+
+            const result = await fetchSteamAccountData(inputVal);
+            activeProfile = result.profile;
+
+            if (result.isLive) {
+                document.getElementById('connectionModeBadge').textContent = 'Mode: Live Serverless API Connected';
+                document.getElementById('connectionModeBadge').className = 'px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+                showToast(`Synced live Steam profile for ${activeProfile.name} (LVL ${activeProfile.level})!`, 'success');
+            } else {
+                showToast(`Loaded profile for ${activeProfile.name} (LVL ${activeProfile.level}).`, 'info');
+            }
+
+            updateDashboard();
+            btn.innerHTML = orig;
+        }
+
+        // Handle 1v1 AccVersusAcc Battle Button
+        async function handleStartVersusBattle() {
+            const p1Input = document.getElementById('versusP1Input').value.trim();
+            const p2Input = document.getElementById('versusP2Input').value.trim();
+
+            if (!p1Input || !p2Input) {
+                showToast('Please enter SteamID64 or Vanity usernames for both Challenger 1 and Challenger 2.', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('versusBattleBtn');
+            const orig = btn.innerHTML;
+            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin text-lg"></i>`;
+
+            const [res1, res2] = await Promise.all([
+                fetchSteamAccountData(p1Input),
+                fetchSteamAccountData(p2Input)
+            ]);
+
+            versusP1Profile = res1.profile;
+            versusP2Profile = res2.profile;
+
+            renderVersusArena();
+            showToast(`1v1 Battle Ready: ${versusP1Profile.name} vs ${versusP2Profile.name}!`, 'success');
+            btn.innerHTML = orig;
+        }
+
+        // Render the entire 1v1 AccVersusAcc Arena UI
+        function renderVersusArena() {
+            const s1 = computeProfileMetrics(versusP1Profile);
+            const s2 = computeProfileMetrics(versusP2Profile);
+
+            // Populate Fighter Headers
+            document.getElementById('vP1Avatar').src = versusP1Profile.avatar;
+            document.getElementById('vP1Name').textContent = versusP1Profile.name;
+            document.getElementById('vP1Level').textContent = `LVL ${versusP1Profile.level ?? 0}`;
+            document.getElementById('vP1SteamId').textContent = versusP1Profile.steamId;
+
+            document.getElementById('vP2Avatar').src = versusP2Profile.avatar;
+            document.getElementById('vP2Name').textContent = versusP2Profile.name;
+            document.getElementById('vP2Level').textContent = `LVL ${versusP2Profile.level ?? 0}`;
+            document.getElementById('vP2SteamId').textContent = versusP2Profile.steamId;
+
+            // Define the 6 Head-to-Head Battle Categories
+            const categories = [
+                {
+                    label: 'Estimated Account Worth',
+                    icon: 'ph-wallet',
+                    v1: s1.totalRetailUsd,
+                    v2: s2.totalRetailUsd,
+                    fmt1: formatMoney(s1.totalRetailUsd),
+                    fmt2: formatMoney(s2.totalRetailUsd),
+                    higherWins: true
+                },
+                {
+                    label: 'Total Combined Playtime',
+                    icon: 'ph-clock-countdown',
+                    v1: s1.totalHours,
+                    v2: s2.totalHours,
+                    fmt1: `${Math.round(s1.totalHours).toLocaleString()} hrs`,
+                    fmt2: `${Math.round(s2.totalHours).toLocaleString()} hrs`,
+                    higherWins: true
+                },
+                {
+                    label: 'Steam Profile Level',
+                    icon: 'ph-medal',
+                    v1: versusP1Profile.level || 0,
+                    v2: versusP2Profile.level || 0,
+                    fmt1: `LVL ${versusP1Profile.level || 0}`,
+                    fmt2: `LVL ${versusP2Profile.level || 0}`,
+                    higherWins: true
+                },
+                {
+                    label: 'Total Game Library Size',
+                    icon: 'ph-books',
+                    v1: s1.totalGamesCount,
+                    v2: s2.totalGamesCount,
+                    fmt1: `${s1.totalGamesCount} Games`,
+                    fmt2: `${s2.totalGamesCount} Games`,
+                    higherWins: true
+                },
+                {
+                    label: 'Backlog Played Completion %',
+                    icon: 'ph-check-circle',
+                    v1: s1.completionPct,
+                    v2: s2.completionPct,
+                    fmt1: `${s1.completionPct.toFixed(1)}%`,
+                    fmt2: `${s2.completionPct.toFixed(1)}%`,
+                    higherWins: true
+                },
+                {
+                    label: 'Entertainment Efficiency (Lowest Cost/Hr)',
+                    icon: 'ph-trend-down',
+                    v1: s1.overallCostPerHourUsd,
+                    v2: s2.overallCostPerHourUsd,
+                    fmt1: `${formatMoney(s1.overallCostPerHourUsd)}/hr`,
+                    fmt2: `${formatMoney(s2.overallCostPerHourUsd)}/hr`,
+                    higherWins: false // Lower cost per hour wins!
+                }
+            ];
+
+            let p1Wins = 0;
+            let p2Wins = 0;
+
+            const barsHtml = categories.map(cat => {
+                let p1Won = false;
+                let p2Won = false;
+
+                if (cat.v1 !== cat.v2) {
+                    if (cat.higherWins) {
+                        p1Won = cat.v1 > cat.v2;
+                        p2Won = cat.v2 > cat.v1;
+                    } else {
+                        // Lower wins (if > 0)
+                        p1Won = cat.v1 > 0 && (cat.v1 < cat.v2 || cat.v2 === 0);
+                        p2Won = cat.v2 > 0 && (cat.v2 < cat.v1 || cat.v1 === 0);
+                    }
+                }
+
+                if (p1Won) p1Wins++;
+                if (p2Won) p2Wins++;
+
+                // Calculate tug-of-war bar percentages
+                const sum = (cat.v1 + cat.v2) || 1;
+                let p1Pct = Math.round((cat.v1 / sum) * 100);
+                p1Pct = Math.min(92, Math.max(8, p1Pct));
+                const p2Pct = 100 - p1Pct;
+
+                return `
+                    <div class="p-4 rounded-xl bg-slate-900/80 border border-steam-border">
+                        <div class="flex items-center justify-between text-xs sm:text-sm mb-2">
+                            <div class="flex items-center gap-2 font-mono font-bold ${p1Won ? 'text-cyan-300' : 'text-slate-400'}">
+                                <span>${cat.fmt1}</span>
+                                ${p1Won ? '<span class="px-1.5 py-0.5 text-[10px] rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">WIN</span>' : ''}
+                            </div>
+                            <div class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                                <i class="ph-fill ${cat.icon} text-steam-accent"></i>
+                                <span>${cat.label}</span>
+                            </div>
+                            <div class="flex items-center gap-2 font-mono font-bold ${p2Won ? 'text-purple-300' : 'text-slate-400'}">
+                                ${p2Won ? '<span class="px-1.5 py-0.5 text-[10px] rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">WIN</span>' : ''}
+                                <span>${cat.fmt2}</span>
+                            </div>
+                        </div>
+                        <div class="w-full h-3 rounded-full bg-slate-950 overflow-hidden flex p-0.5 gap-1 border border-steam-border">
+                            <div class="h-full rounded-l-full bg-gradient-to-r from-cyan-500 to-steam-accent transition-all duration-500" style="width: ${p1Pct}%"></div>
+                            <div class="h-full rounded-r-full bg-gradient-to-l from-purple-500 to-fuchsia-400 transition-all duration-500" style="width: ${p2Pct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('versusMetricsContainer').innerHTML = barsHtml;
+
+            // Update Scoreboard & Winner Crowns
+            document.getElementById('vScoreP1').textContent = p1Wins;
+            document.getElementById('vScoreP2').textContent = p2Wins;
+
+            const p1Crown = document.getElementById('vP1Crown');
+            const p2Crown = document.getElementById('vP2Crown');
+            const summaryText = document.getElementById('vWinnerSummaryText');
+
+            p1Crown.classList.add('hidden');
+            p2Crown.classList.add('hidden');
+
+            if (p1Wins > p2Wins) {
+                p1Crown.classList.remove('hidden');
+                summaryText.textContent = `${versusP1Profile.name} wins the battle (${p1Wins} - ${p2Wins})!`;
+            } else if (p2Wins > p1Wins) {
+                p2Crown.classList.remove('hidden');
+                summaryText.textContent = `${versusP2Profile.name} wins the battle (${p2Wins} - ${p1Wins})!`;
+            } else {
+                summaryText.textContent = `It's a dead heat tie (${p1Wins} - ${p2Wins})!`;
+            }
+
+            // Render Shared Games Showdown
+            renderSharedGamesShowdown();
+        }
+
+        // Find and compare games owned by BOTH Player 1 and Player 2
+        function renderSharedGamesShowdown() {
+            const p2Map = new Map();
+            (versusP2Profile.games || []).forEach(g => {
+                p2Map.set(g.appid, g);
+            });
+
+            const shared = [];
+            (versusP1Profile.games || []).forEach(g1 => {
+                const g2 = p2Map.get(g1.appid);
+                if (g2) {
+                    shared.push({
+                        appid: g1.appid,
+                        title: g1.title,
+                        p1Hours: g1.hours,
+                        p2Hours: g2.hours,
+                        combinedHours: g1.hours + g2.hours
+                    });
+                }
+            });
+
+            shared.sort((a, b) => b.combinedHours - a.combinedHours);
+
+            const badge = document.getElementById('sharedGamesCountBadge');
+            badge.textContent = `${shared.length} Shared Title${shared.length === 1 ? '' : 's'} Found`;
+
+            const container = document.getElementById('sharedGamesContainer');
+            if (shared.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-2 py-8 text-center text-slate-400 text-xs">
+                        No overlapping AppIDs found between these two libraries.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = shared.map(item => {
+                const steamHeaderImg = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.appid}/header.jpg`;
+                const p1Leads = item.p1Hours >= item.p2Hours;
+                const sum = (item.p1Hours + item.p2Hours) || 1;
+                const p1Pct = Math.min(92, Math.max(8, Math.round((item.p1Hours / sum) * 100)));
+                const p2Pct = 100 - p1Pct;
+
+                return `
+                    <div class="p-3.5 rounded-xl bg-slate-900/75 border border-steam-border flex flex-col justify-between gap-2.5">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <img src="${steamHeaderImg}" onerror="this.src='https://placehold.co/120x56/1b2838/66c0f4?text=STEAM'" alt="${item.title}" class="w-14 h-7 rounded object-cover border border-steam-border shrink-0">
+                                <div class="truncate">
+                                    <div class="text-xs sm:text-sm font-bold text-white truncate">${item.title}</div>
+                                    <div class="text-[11px] text-slate-400">Combined: <span class="font-mono text-slate-300">${item.combinedHours.toFixed(1)} hrs</span></div>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded font-bold shrink-0 ${p1Leads ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'}">
+                                ${p1Leads ? versusP1Profile.name : versusP2Profile.name} Leads
+                            </span>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-mono mb-1">
+                                <span class="text-cyan-400 font-semibold">${versusP1Profile.name}: ${item.p1Hours.toFixed(1)}h</span>
+                                <span class="text-purple-400 font-semibold">${versusP2Profile.name}: ${item.p2Hours.toFixed(1)}h</span>
+                            </div>
+                            <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden flex gap-0.5">
+                                <div class="h-full bg-cyan-400" style="width: ${p1Pct}%"></div>
+                                <div class="h-full bg-purple-400" style="width: ${p2Pct}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         // Render Top 5 Playtime Distribution Bars
@@ -1252,6 +1884,7 @@ exports.handler = async function(event) {
         // Initialize on load
         window.onload = function() {
             updateDashboard();
+            renderVersusArena();
         };
     </script>
 </body>
