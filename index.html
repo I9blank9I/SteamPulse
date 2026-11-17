@@ -51,7 +51,6 @@
             background-attachment: fixed;
             color: #e2e8f0;
         }
-        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -93,11 +92,11 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="font-extrabold text-lg tracking-tight text-white">Steam<span class="text-steam-accent">Pulse</span></span>
-                            <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded-full bg-steam-blue/15 text-steam-accent border border-steam-accent/30 font-semibold">v3.5</span>
+                            <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded-full bg-steam-blue/15 text-steam-accent border border-steam-accent/30 font-semibold">v3.6</span>
                         </div>
                     </div>
                 </div>
-                <!-- Main Mode Switcher (Single Profile vs AccVersusAcc vs Co-op Casino Roulette) -->
+                <!-- Main Mode Switcher -->
                 <div class="flex items-center bg-slate-950/90 border border-steam-border rounded-xl p-1 text-xs font-bold overflow-x-auto">
                     <button onclick="switchAppMode('single')" id="mode-single-btn" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-steam-blue text-slate-950 shadow shrink-0">
                         <i class="ph-bold ph-user"></i>
@@ -115,7 +114,7 @@
                 </div>
             </div>
 
-            <!-- Right Controls (Clean Currency Selector Only) -->
+            <!-- Right Controls (Currency Selector) -->
             <div class="flex items-center gap-2 sm:gap-3">
                 <div class="relative flex items-center bg-slate-900/90 border border-steam-border rounded-lg p-1 text-xs font-mono">
                     <button onclick="setCurrency('CHF')" id="curr-CHF" class="px-2.5 py-1 rounded-md transition-all font-semibold bg-steam-blue text-slate-950">CHF</button>
@@ -161,17 +160,14 @@
                 
                 <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
                     <div class="flex items-center gap-4 sm:gap-5">
-                        <!-- Avatar with Status Ring -->
                         <div class="relative shrink-0">
                             <img id="profileAvatar" src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&w=200&q=80" onerror="this.src='https://placehold.co/120x120/1b2838/66c0f4?text=STEAM'" alt="Avatar" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-steam-accent shadow-lg shadow-steam-accent/20">
                             <span class="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-slate-950 border-2 border-slate-950">ONLINE</span>
                         </div>
 
-                        <!-- User Details -->
                         <div>
                             <div class="flex flex-wrap items-center gap-2.5">
                                 <h1 id="profileName" class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">CyberSwiss_99</h1>
-                                <!-- Live Steam Level Badge (id="profile-level") -->
                                 <span id="profile-level" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-steam-blue/20 text-steam-accent border border-steam-accent/40">
                                     LVL 67
                                 </span>
@@ -214,7 +210,6 @@
 
             <!-- 4 Executive KPI Cards -->
             <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- Card 1: Total Account Worth -->
                 <div class="glass-panel rounded-2xl p-5 hover:border-steam-accent/40 transition group">
                     <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
                         <span>Estimated Account Worth</span>
@@ -231,7 +226,6 @@
                     </div>
                 </div>
 
-                <!-- Card 2: Total Combined Playtime -->
                 <div class="glass-panel rounded-2xl p-5 hover:border-steam-accent/40 transition group">
                     <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
                         <span>Total Playtime</span>
@@ -248,7 +242,6 @@
                     </div>
                 </div>
 
-                <!-- Card 3: Cost Efficiency -->
                 <div class="glass-panel rounded-2xl p-5 hover:border-steam-accent/40 transition group">
                     <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
                         <span>Cost Per Hour</span>
@@ -266,7 +259,6 @@
                     </div>
                 </div>
 
-                <!-- Card 4: Library Completion & Backlog Ratio -->
                 <div class="glass-panel rounded-2xl p-5 hover:border-steam-accent/40 transition group">
                     <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
                         <span>Played vs Unplayed</span>
@@ -278,7 +270,6 @@
                         <span id="kpiCompletionPct" class="text-2xl sm:text-3xl font-extrabold font-mono text-white">78.6%</span>
                         <span id="kpiPlayedCount" class="text-xs font-mono text-slate-400">22 / 28 Played</span>
                     </div>
-                    <!-- Progress Bar -->
                     <div class="mt-3 w-full bg-slate-900 h-2 rounded-full overflow-hidden p-0.5 border border-steam-border">
                         <div id="kpiCompletionBar" class="bg-gradient-to-r from-steam-blue to-emerald-400 h-full rounded-full transition-all duration-500" style="width: 78%"></div>
                     </div>
@@ -287,8 +278,6 @@
 
             <!-- Visual Breakdown Row: Playtime Distribution & Pile of Shame -->
             <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                <!-- Left 2 Cols: Top 5 Most Played Games Breakdown -->
                 <div class="lg:col-span-2 glass-panel rounded-2xl p-5 sm:p-6">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
                         <div>
@@ -303,13 +292,9 @@
                         </span>
                     </div>
 
-                    <!-- Dynamic Bars Container -->
-                    <div id="topGamesBarsContainer" class="space-y-3.5">
-                        <!-- Populated via JS -->
-                    </div>
+                    <div id="topGamesBarsContainer" class="space-y-3.5"></div>
                 </div>
 
-                <!-- Right 1 Col: Pile of Shame & Value Highlights -->
                 <div class="glass-panel rounded-2xl p-5 sm:p-6 flex flex-col justify-between space-y-4">
                     <div>
                         <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
@@ -320,7 +305,6 @@
                     </div>
 
                     <div class="space-y-3">
-                        <!-- Unplayed Waste Box -->
                         <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/25">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-semibold uppercase tracking-wider text-rose-300">Unplayed Backlog Value</span>
@@ -334,7 +318,6 @@
                             </p>
                         </div>
 
-                        <!-- Best Value Champion Box -->
                         <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Best Value Paid Game</span>
@@ -348,7 +331,6 @@
                             </p>
                         </div>
 
-                        <!-- Daily Average -->
                         <div class="p-4 rounded-xl bg-slate-900/90 border border-steam-border">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Daily Gaming Average</span>
@@ -367,7 +349,6 @@
 
             <!-- Complete Searchable & Sortable Game Library -->
             <section class="glass-panel rounded-2xl p-5 sm:p-6">
-                <!-- Header & Filter Tabs -->
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-steam-border">
                     <div>
                         <h2 class="text-lg font-bold text-white flex items-center gap-2">
@@ -377,7 +358,6 @@
                         <p class="text-xs text-slate-400 mt-0.5">Search, sort, and inspect playtime, accurate Steam store retail price (click any price to edit), and cost per hour</p>
                     </div>
 
-                    <!-- Filter Tabs -->
                     <div class="flex flex-wrap items-center gap-1.5 bg-slate-950/80 p-1.5 rounded-xl border border-steam-border">
                         <button onclick="setLibraryFilter('all')" id="tab-all" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-steam-blue text-slate-950 transition">
                             All Games
@@ -394,7 +374,6 @@
                     </div>
                 </div>
 
-                <!-- Search & Sort Controls -->
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 my-4">
                     <div class="relative flex-1 max-w-md">
                         <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
@@ -420,7 +399,6 @@
                     </div>
                 </div>
 
-                <!-- Responsive Table -->
                 <div class="overflow-x-auto -mx-5 sm:mx-0">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -433,9 +411,7 @@
                                 <th class="py-3 px-4 text-right">Status</th>
                             </tr>
                         </thead>
-                        <tbody id="libraryTableBody" class="divide-y divide-steam-border/50 text-sm">
-                            <!-- Populated via JS -->
-                        </tbody>
+                        <tbody id="libraryTableBody" class="divide-y divide-steam-border/50 text-sm"></tbody>
                     </table>
                 </div>
             </section>
@@ -446,7 +422,6 @@
         <!-- =============================================================== -->
         <div id="versusModeContainer" class="hidden space-y-6">
 
-            <!-- Dual Fighter Input Control Deck -->
             <section class="glass-panel rounded-2xl p-5 sm:p-6 shadow-xl border border-steam-accent/30">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 mb-5 border-b border-steam-border">
                     <div>
@@ -464,9 +439,7 @@
                     </div>
                 </div>
 
-                <!-- Player 1 & Player 2 Search Inputs -->
                 <div class="grid grid-cols-1 lg:grid-cols-11 gap-4 items-center">
-                    <!-- Player 1 Input Box -->
                     <div class="lg:col-span-5 p-3.5 rounded-xl bg-slate-950/70 border border-cyan-500/30">
                         <label class="block text-[11px] font-mono uppercase tracking-wider text-cyan-400 font-bold mb-1.5">
                             Challenger 1 (Blue Corner)
@@ -482,7 +455,6 @@
                         </div>
                     </div>
 
-                    <!-- Center Start Battle Button -->
                     <div class="lg:col-span-1 flex justify-center">
                         <button onclick="handleStartVersusBattle()" id="versusBattleBtn" class="w-full lg:w-12 h-11 lg:h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-extrabold text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20 transition">
                             <i class="ph-bold ph-swords text-lg"></i>
@@ -490,7 +462,6 @@
                         </button>
                     </div>
 
-                    <!-- Player 2 Input Box -->
                     <div class="lg:col-span-5 p-3.5 rounded-xl bg-slate-950/70 border border-purple-500/30">
                         <label class="block text-[11px] font-mono uppercase tracking-wider text-purple-400 font-bold mb-1.5">
                             Challenger 2 (Purple Corner)
@@ -508,11 +479,8 @@
                 </div>
             </section>
 
-            <!-- Head-to-Head Fighters Banner & Overall Winner Verdict -->
             <section class="glass-panel rounded-2xl p-5 sm:p-6 relative overflow-hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
-                    
-                    <!-- Player 1 Card -->
                     <div id="versusP1Card" class="p-4 rounded-2xl bg-cyan-500/5 border border-cyan-500/30 flex items-center gap-4">
                         <img id="vP1Avatar" src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&w=200&q=80" onerror="this.src='https://placehold.co/120x120/1b2838/66c0f4?text=P1'" alt="P1" class="w-16 h-16 rounded-2xl object-cover border-2 border-cyan-400 shrink-0">
                         <div class="min-w-0 flex-1">
@@ -527,7 +495,6 @@
                         </div>
                     </div>
 
-                    <!-- Center Scoreboard Verdict -->
                     <div class="text-center py-2 px-4 rounded-2xl bg-slate-950/80 border border-steam-border">
                         <div class="text-[11px] font-mono uppercase tracking-widest text-slate-400">Category Score</div>
                         <div class="flex items-center justify-center gap-4 my-1">
@@ -540,7 +507,6 @@
                         </div>
                     </div>
 
-                    <!-- Player 2 Card -->
                     <div id="versusP2Card" class="p-4 rounded-2xl bg-purple-500/5 border border-purple-500/30 flex items-center gap-4 lg:flex-row-reverse lg:text-right">
                         <img id="vP2Avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" onerror="this.src='https://placehold.co/120x120/1b2838/c084fc?text=P2'" alt="P2" class="w-16 h-16 rounded-2xl object-cover border-2 border-purple-400 shrink-0">
                         <div class="min-w-0 flex-1">
@@ -554,11 +520,9 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </section>
 
-            <!-- 6 Tug-of-War Metric Bars -->
             <section class="glass-panel rounded-2xl p-5 sm:p-6">
                 <div class="flex items-center justify-between mb-5">
                     <div>
@@ -570,12 +534,9 @@
                     </div>
                 </div>
 
-                <div id="versusMetricsContainer" class="space-y-4">
-                    <!-- Populated dynamically via JS -->
-                </div>
+                <div id="versusMetricsContainer" class="space-y-4"></div>
             </section>
 
-            <!-- Shared Games Showdown -->
             <section class="glass-panel rounded-2xl p-5 sm:p-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
                     <div>
@@ -590,11 +551,8 @@
                     </span>
                 </div>
 
-                <div id="sharedGamesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                    <!-- Populated dynamically via JS -->
-                </div>
+                <div id="sharedGamesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
             </section>
-
         </div>
 
         <!-- =============================================================== -->
@@ -616,13 +574,12 @@
                             <h2 class="text-lg sm:text-xl font-extrabold text-white">Co-op Casino Roulette & Blind % Matcher</h2>
                         </div>
                         <p class="text-xs text-slate-400 mt-1">
-                            Load Player 1 (or both players to automatically filter for <strong class="text-emerald-300">Shared Owned Games</strong>). Pick games from your library, type your exact <strong class="text-white">0-100%</strong> hype score, lock in, and spin live together!
+                            Load Player 1 (or both players to automatically filter for <strong class="text-emerald-300">Shared Owned Games</strong>). Both Steam IDs & the full library automatically sync when you share your room link!
                         </p>
                     </div>
 
                     <!-- Role Selector + Blind Mode + Audio Controls -->
                     <div class="flex flex-wrap items-center gap-2 shrink-0">
-                        <!-- Role Selector: I am Player 1 vs Player 2 -->
                         <div class="flex items-center bg-slate-950 border border-steam-border rounded-xl p-1 text-xs font-bold">
                             <button onclick="setRouletteRole(1)" id="roleP1Btn" class="px-2.5 py-1.5 rounded-lg bg-cyan-500 text-slate-950 transition flex items-center gap-1">
                                 <i class="ph-bold ph-user"></i>
@@ -648,7 +605,6 @@
 
                 <!-- 2. PLAYER 1 & PLAYER 2 STEAM LIBRARY LOADER + LIVE ROOM LINK -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-5 items-end">
-                    <!-- Player 1 Steam ID Input -->
                     <div class="lg:col-span-4">
                         <label class="block text-[11px] font-mono uppercase text-cyan-400 font-bold mb-1">
                             Player 1 Steam ID / Vanity (Required)
@@ -664,7 +620,6 @@
                         </div>
                     </div>
 
-                    <!-- Player 2 Steam ID Input (Optional - triggers Shared Games filter) -->
                     <div class="lg:col-span-4">
                         <label class="block text-[11px] font-mono uppercase text-purple-400 font-bold mb-1">
                             Player 2 Steam ID / Vanity (Optional - Filters Shared Games)
@@ -683,7 +638,6 @@
                         </div>
                     </div>
 
-                    <!-- Sync Libraries Button + Live Room Share -->
                     <div class="lg:col-span-4 flex flex-wrap sm:flex-nowrap items-center gap-2">
                         <button onclick="syncRouletteSteamLibraries()" id="syncRouletteLibsBtn" class="flex-1 px-4 py-2 rounded-xl bg-steam-accent hover:bg-cyan-300 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-lg transition">
                             <i class="ph-bold ph-arrows-clockwise"></i>
@@ -696,28 +650,33 @@
                     </div>
                 </div>
 
-                <!-- 3. OWNED / SHARED GAMES FILTER BAR & LIBRARY PICKER TRIGGER -->
-                <div class="mt-4 pt-4 border-t border-steam-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span id="rouletteOwnershipModeBadge" class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-                            Showing: P1 Owned Library (28 Games)
-                        </span>
-                        <button onclick="loadOwnedIntoRoulette('backlog')" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-steam-accent border border-steam-border text-xs font-semibold flex items-center gap-1.5 transition">
+                <!-- 3. BIG PROMINENT LIBRARY PICKER CTA & QUICK FILTERS -->
+                <div class="mt-5 pt-5 border-t border-steam-border/60 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- BIG HERO BUTTON TO PICK SPECIFIC GAMES FROM LIBRARY -->
+                        <button onclick="toggleLibraryPickerModal(true)" class="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 hover:from-emerald-300 hover:to-cyan-300 text-slate-950 text-sm sm:text-base font-extrabold flex items-center justify-center gap-2.5 shadow-xl shadow-emerald-500/25 ring-2 ring-emerald-300/60 hover:scale-[1.02] active:scale-[0.99] transition-all">
+                            <i class="ph-fill ph-game-controller text-xl"></i>
+                            <span>Pick Specific Games from Library (<span id="pickerAvailableCount">28</span> Available)</span>
+                            <i class="ph-bold ph-caret-right text-base"></i>
+                        </button>
+
+                        <button onclick="loadOwnedIntoRoulette('backlog')" class="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-steam-accent border border-steam-border text-xs font-semibold flex items-center gap-1.5 transition">
                             <i class="ph-bold ph-hourglass-low"></i>
                             <span>Load &lt; 2h Backlog Only</span>
                         </button>
-                        <button onclick="loadOwnedIntoRoulette('all')" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-steam-border text-xs font-semibold flex items-center gap-1.5 transition">
+                        <button onclick="loadOwnedIntoRoulette('all')" class="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-steam-border text-xs font-semibold flex items-center gap-1.5 transition">
                             <i class="ph-bold ph-stack"></i>
                             <span>Load Top Owned / Shared</span>
                         </button>
-                        <button onclick="toggleLibraryPickerModal(true)" class="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-extrabold flex items-center gap-1.5 transition">
-                            <i class="ph-bold ph-list-checks"></i>
-                            <span>Pick Specific Games from Library (<span id="pickerAvailableCount">28</span>)</span>
-                        </button>
                     </div>
 
-                    <div class="text-[11px] font-mono text-slate-400 flex items-center gap-2">
-                        <span>Connected Peers: <strong id="livePeerCount" class="text-emerald-400">1 (Waiting for friend)</strong></span>
+                    <div class="flex flex-wrap items-center gap-3 justify-between lg:justify-end">
+                        <span id="rouletteOwnershipModeBadge" class="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                            Showing: P1 Owned Library (28 Games)
+                        </span>
+                        <div class="text-[11px] font-mono text-slate-400 flex items-center gap-2">
+                            <span>Connected Peers: <strong id="livePeerCount" class="text-emerald-400">1 (Waiting for friend)</strong></span>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -753,9 +712,7 @@
                     </div>
 
                     <!-- Scrolling Track -->
-                    <div id="casinoReelTrack" class="flex items-center gap-3 px-4 will-change-transform" style="transform: translateX(0px);">
-                        <!-- Populated dynamically via JS -->
-                    </div>
+                    <div id="casinoReelTrack" class="flex items-center gap-3 px-4 will-change-transform" style="transform: translateX(0px);"></div>
                 </div>
 
                 <!-- Winner Reveal Banner -->
@@ -777,7 +734,7 @@
                         <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
                             <a id="winnerSteamLaunchBtn" href="steam://run/553850" class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg transition">
                                 <i class="ph-fill ph-play-circle text-lg"></i>
-                                <span>Launch in Steam</span>
+                                <span id="winnerLaunchBtnLabel">Launch in Steam</span>
                             </a>
                             <button onclick="removeWinnerAndRespin()" class="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-rose-300 border border-rose-500/30 text-xs font-bold transition">
                                 Remove & Spin Again
@@ -819,7 +776,7 @@
 
             <!-- 2-PLAYER BLIND HYPE % VOTING & READY-CHECK ARENA -->
             <section class="glass-panel rounded-2xl p-5 sm:p-6">
-                <!-- Add Custom Game Bar + Player Ready Lock-in Header -->
+                <!-- Add Custom Game Bar with Live Search Helper + Player Ready Lock-in Header -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pb-5 mb-5 border-b border-steam-border items-center">
                     
                     <!-- Player 1 Ready Box -->
@@ -834,13 +791,30 @@
                         </button>
                     </div>
 
-                    <!-- Center Add Game or Pick from Library -->
-                    <div class="lg:col-span-4 flex gap-2">
-                        <input type="text" id="rouletteCustomGameInput" onkeydown="if(event.key==='Enter') addGameToRoulettePool()" placeholder="Type any game name to add..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-steam-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400">
-                        <button onclick="addGameToRoulettePool()" id="addRouletteGameBtn" class="px-3.5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shrink-0 flex items-center gap-1 transition">
-                            <i class="ph-bold ph-plus"></i>
-                            <span>Add</span>
-                        </button>
+                    <!-- Center Add Game with Live Search Autocomplete Helper (Steam + Non-Steam Hits) -->
+                    <div class="lg:col-span-4 relative" id="customGameSearchWrapper">
+                        <div class="flex gap-2">
+                            <div class="relative flex-1">
+                                <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                <input 
+                                    type="text" 
+                                    id="rouletteCustomGameInput" 
+                                    autocomplete="off"
+                                    oninput="handleCustomGameSearchInput(this.value)"
+                                    onfocus="handleCustomGameSearchInput(this.value)"
+                                    onkeydown="if(event.key==='Enter') { hideCustomSearchSuggestions(); addGameToRoulettePool(); }" 
+                                    placeholder="Search any game (Fortnite, LoL, CS2, Steam...)" 
+                                    class="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-steam-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400"
+                                >
+                            </div>
+                            <button onclick="addGameToRoulettePool()" id="addRouletteGameBtn" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shrink-0 flex items-center gap-1 transition shadow-md">
+                                <i class="ph-bold ph-plus"></i>
+                                <span>Add</span>
+                            </button>
+                        </div>
+
+                        <!-- Live Search Helper Dropdown -->
+                        <div id="customGameSearchDropdown" class="hidden absolute left-0 right-0 top-full mt-2 z-40 rounded-2xl bg-slate-950/95 backdrop-blur-xl border border-emerald-500/40 shadow-2xl max-h-72 overflow-y-auto divide-y divide-steam-border/50"></div>
                     </div>
 
                     <!-- Player 2 Ready Box -->
@@ -857,9 +831,7 @@
                 </div>
 
                 <!-- Voting Cards List -->
-                <div id="rouletteVotingList" class="space-y-3">
-                    <!-- Populated dynamically via JS -->
-                </div>
+                <div id="rouletteVotingList" class="space-y-3"></div>
             </section>
 
         </div>
@@ -885,7 +857,7 @@
                         <i class="ph-fill ph-list-checks text-emerald-400"></i>
                         Pick Games from Owned / Shared Library
                     </h3>
-                    <p id="pickerModalSubtitle" class="text-xs text-slate-400 mt-0.5">Select games to add to the Roulette voting pool</p>
+                    <p id="pickerModalSubtitle" class="text-xs text-slate-400 mt-0.5">Select games to add to the Roulette voting pool (syncs live to both players)</p>
                 </div>
                 <button onclick="toggleLibraryPickerModal(false)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
                     <i class="ph-bold ph-x"></i>
@@ -902,9 +874,7 @@
                 </button>
             </div>
 
-            <div id="libraryPickerListContainer" class="p-4 overflow-y-auto space-y-2 flex-1">
-                <!-- Populated via JS -->
-            </div>
+            <div id="libraryPickerListContainer" class="p-4 overflow-y-auto space-y-2 flex-1"></div>
 
             <div class="p-4 border-t border-steam-border bg-slate-900/80 flex justify-between items-center">
                 <span id="pickerPoolCountStatus" class="text-xs font-mono text-emerald-400">6 games currently in Roulette</span>
@@ -978,6 +948,33 @@
         let currentCurrency = 'CHF';
         let currentFilter = 'all';
         let currentAppMode = 'single';
+
+        // Built-in Popular Non-Steam & Cross-Platform Multiplayer Games for instant Search Helper
+        const POPULAR_CUSTOM_GAMES = [
+            { appid: 9900001, title: 'Fortnite', genre: 'Battle Royale (Epic Games)', customImg: 'https://placehold.co/320x150/1e293b/38bdf8?text=FORTNITE' },
+            { appid: 9900002, title: 'League of Legends', genre: 'MOBA (Riot Games)', customImg: 'https://placehold.co/320x150/0f172a/fbbf24?text=LEAGUE+OF+LEGENDS' },
+            { appid: 9900003, title: 'VALORANT', genre: 'Tactical Shooter (Riot Games)', customImg: 'https://placehold.co/320x150/1e1b4b/f43f5e?text=VALORANT' },
+            { appid: 9900004, title: 'Teamfight Tactics (TFT)', genre: 'Auto Battler (Riot Games)', customImg: 'https://placehold.co/320x150/172554/fde047?text=TEAMFIGHT+TACTICS' },
+            { appid: 9900005, title: 'Minecraft', genre: 'Sandbox Survival', customImg: 'https://placehold.co/320x150/14532d/4ade80?text=MINECRAFT' },
+            { appid: 9900006, title: 'Roblox', genre: 'Multiplayer Sandbox', customImg: 'https://placehold.co/320x150/18181b/e4e4e7?text=ROBLOX' },
+            { appid: 252950,  title: 'Rocket League', genre: 'Arcade Sports' },
+            { appid: 2357570, title: 'Overwatch 2', genre: 'Hero Shooter' },
+            { appid: 1962663, title: 'Call of Duty: Warzone', genre: 'Battle Royale' },
+            { appid: 730,     title: 'Counter-Strike 2', genre: 'Tactical Shooter' },
+            { appid: 1172470, title: 'Apex Legends', genre: 'Battle Royale' },
+            { appid: 2767030, title: 'Marvel Rivals', genre: 'Hero Shooter' },
+            { appid: 553850,  title: 'HELLDIVERS 2', genre: 'Co-op Shooter' },
+            { appid: 1966720, title: 'Lethal Company', genre: 'Co-op Horror' },
+            { appid: 739630,  title: 'Phasmophobia', genre: 'Co-op Horror' },
+            { appid: 1086940, title: "Baldur's Gate 3", genre: 'Co-op CRPG' },
+            { appid: 632360,  title: 'Risk of Rain 2', genre: 'Co-op Roguelike' },
+            { appid: 548430,  title: 'Deep Rock Galactic', genre: 'Co-op FPS' },
+            { appid: 892970,  title: 'Valheim', genre: 'Co-op Survival' },
+            { appid: 413150,  title: 'Stardew Valley', genre: 'Co-op Farming' },
+            { appid: 105600,  title: 'Terraria', genre: 'Co-op Sandbox' },
+            { appid: 9900007, title: 'Genshin Impact', genre: 'Action RPG (HoYoverse)', customImg: 'https://placehold.co/320x150/1e1b4b/a78bfa?text=GENSHIN+IMPACT' },
+            { appid: 9900008, title: 'EA SPORTS FC 25', genre: 'Sports Football', customImg: 'https://placehold.co/320x150/064e3b/34d399?text=EA+SPORTS+FC+25' }
+        ];
 
         const KNOWN_APP_PRICES_USD = {
             730: { retail: 0.00, sale: 0.00 },
@@ -1060,6 +1057,14 @@
             1604030: { retail: 19.99, sale: 13.99 },
             431960: { retail: 4.99, sale: 3.99 }
         };
+
+        function getGameCapsuleImage(gameObj) {
+            if (!gameObj) return 'https://placehold.co/180x84/1b2838/66c0f4?text=GAME';
+            if (gameObj.customImg) return gameObj.customImg;
+            const nonSteamMatch = POPULAR_CUSTOM_GAMES.find(p => Number(p.appid) === Number(gameObj.appid) && p.customImg);
+            if (nonSteamMatch) return nonSteamMatch.customImg;
+            return `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${gameObj.appid}/header.jpg`;
+        }
 
         function getAccurateGamePrice(appid, title = '', hours = 0, backendPriceOverview = null) {
             try {
@@ -1214,16 +1219,35 @@
         let rouletteP1Account = JSON.parse(JSON.stringify(PRESET_PROFILES.core));
         let rouletteP2Account = null;
         let rouletteAvailableLibrary = [];
+        let rouletteOwnershipLabel = '';
         let rouletteRoomCode = 'SP-' + Math.floor(1000 + Math.random() * 9000);
         let mqttClient = null;
         let myClientId = 'peer_' + Math.random().toString(36).substring(2, 9);
         let connectedPeers = new Set([myClientId]);
         let roulettePool = [];
+        let joinedViaSharedRoomLink = false;
+
+        function updateOwnershipBadgeUI() {
+            const badge = document.getElementById('rouletteOwnershipModeBadge');
+            const countEl = document.getElementById('pickerAvailableCount');
+            if (countEl) countEl.textContent = rouletteAvailableLibrary.length;
+
+            if (!badge) return;
+            const p2InputVal = (document.getElementById('rouletteP2SteamInput')?.value || '').trim();
+            if (rouletteP2Account || p2InputVal) {
+                rouletteOwnershipLabel = `Showing: Shared Games Owned by BOTH (${rouletteAvailableLibrary.length} Titles)`;
+                badge.textContent = rouletteOwnershipLabel;
+                badge.className = 'px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40';
+            } else {
+                const p1Name = document.getElementById('rouletteP1NameInput')?.value || rouletteP1Account?.name || 'P1';
+                rouletteOwnershipLabel = `Showing: ${p1Name}'s Owned Games (${rouletteAvailableLibrary.length} Titles)`;
+                badge.textContent = rouletteOwnershipLabel;
+                badge.className = 'px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30';
+            }
+        }
 
         function recomputeRouletteAvailableLibrary(resetPoolWithGames = false) {
             const p1Games = (rouletteP1Account && rouletteP1Account.games) ? rouletteP1Account.games : [];
-            const badge = document.getElementById('rouletteOwnershipModeBadge');
-            const countEl = document.getElementById('pickerAvailableCount');
 
             if (rouletteP2Account && Array.isArray(rouletteP2Account.games) && rouletteP2Account.games.length > 0) {
                 const p2Map = new Map();
@@ -1236,11 +1260,6 @@
                     hours: g.hours,
                     genre: 'Shared by P1 & P2'
                 }));
-
-                if (badge) {
-                    badge.textContent = `Showing: Shared Games Owned by BOTH (${rouletteAvailableLibrary.length} Titles)`;
-                    badge.className = 'px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40';
-                }
             } else {
                 rouletteAvailableLibrary = p1Games.map(g => ({
                     appid: g.appid,
@@ -1248,16 +1267,11 @@
                     hours: g.hours,
                     genre: g.genre || 'Owned by P1'
                 }));
-
-                if (badge) {
-                    badge.textContent = `Showing: ${rouletteP1Account.name}'s Owned Games (${rouletteAvailableLibrary.length} Titles)`;
-                    badge.className = 'px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30';
-                }
             }
 
-            if (countEl) countEl.textContent = rouletteAvailableLibrary.length;
+            updateOwnershipBadgeUI();
 
-            if (resetPoolWithGames || roulettePool.length === 0) {
+            if (resetPoolWithGames || (roulettePool.length === 0 && !joinedViaSharedRoomLink)) {
                 const defaultSelection = rouletteAvailableLibrary.slice(0, 8);
                 roulettePool = defaultSelection.map(g => ({
                     appid: g.appid,
@@ -1279,7 +1293,7 @@
                 try { mqttClient.end(true); } catch (e) {}
             }
 
-            const topicBase = `steampulse/v35/live/${roomCode}`;
+            const topicBase = `steampulse/v36/live/${roomCode}`;
             try {
                 mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt', {
                     clientId: 'sp_' + myClientId + '_' + Math.floor(Math.random() * 1000),
@@ -1300,6 +1314,11 @@
                         action: 'JOIN',
                         ts: Date.now()
                     }));
+
+                    // If we are Player 1 (Host), publish retained state so any friend joining gets the full library & IDs immediately
+                    if (rouletteMyRole === 1) {
+                        broadcastRouletteState();
+                    }
                 });
 
                 mqttClient.on('message', (topic, messageBuffer) => {
@@ -1317,12 +1336,26 @@
                             }
                         } else if (topic.endsWith('/state')) {
                             if (Array.isArray(data.pool)) roulettePool = data.pool;
+                            if (Array.isArray(data.availableLibrary) && data.availableLibrary.length > 0) {
+                                rouletteAvailableLibrary = data.availableLibrary;
+                            }
+                            if (typeof data.p1SteamId === 'string') {
+                                document.getElementById('rouletteP1SteamInput').value = data.p1SteamId;
+                            }
+                            if (typeof data.p2SteamId === 'string') {
+                                document.getElementById('rouletteP2SteamInput').value = data.p2SteamId;
+                            }
                             if (typeof data.p1Ready === 'boolean') rouletteP1Ready = data.p1Ready;
                             if (typeof data.p2Ready === 'boolean') rouletteP2Ready = data.p2Ready;
                             if (typeof data.blindMode === 'boolean') rouletteBlindMode = data.blindMode;
                             if (data.p1Name) document.getElementById('rouletteP1NameInput').value = data.p1Name;
                             if (data.p2Name) document.getElementById('rouletteP2NameInput').value = data.p2Name;
+
+                            updateOwnershipBadgeUI();
                             renderRouletteArena();
+                            if (!document.getElementById('libraryPickerModal').classList.contains('hidden')) {
+                                renderLibraryPickerList();
+                            }
                         } else if (topic.endsWith('/spin')) {
                             rouletteP1Ready = true;
                             rouletteP2Ready = true;
@@ -1603,12 +1636,16 @@
             const result = await fetchSteamAccountData(inputVal);
             activeProfile = result.profile;
 
-            rouletteP1Account = JSON.parse(JSON.stringify(activeProfile));
-            const rP1Input = document.getElementById('rouletteP1SteamInput');
-            const rP1Name = document.getElementById('rouletteP1NameInput');
-            if (rP1Input) rP1Input.value = activeProfile.steamId;
-            if (rP1Name) rP1Name.value = activeProfile.name;
-            recomputeRouletteAvailableLibrary(true);
+            // Only overwrite Roulette Player 1 if we didn't just join someone else's live room link
+            if (!joinedViaSharedRoomLink) {
+                rouletteP1Account = JSON.parse(JSON.stringify(activeProfile));
+                const rP1Input = document.getElementById('rouletteP1SteamInput');
+                const rP1Name = document.getElementById('rouletteP1NameInput');
+                if (rP1Input) rP1Input.value = activeProfile.steamId;
+                if (rP1Name) rP1Name.value = activeProfile.name;
+                recomputeRouletteAvailableLibrary(true);
+                renderRouletteArena();
+            }
 
             if (result.isLive) {
                 showToast(`Synced live Steam profile for ${activeProfile.name} (LVL ${activeProfile.level})!`, 'success');
@@ -1876,7 +1913,7 @@
             container.innerHTML = sortedByHours.map((g, idx) => {
                 const widthPct = Math.max(4, (g.hours / maxHours) * 100);
                 const shareOfTotal = totalHours > 0 ? ((g.hours / totalHours) * 100).toFixed(1) : 0;
-                const steamHeaderImg = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${g.appid}/header.jpg`;
+                const steamHeaderImg = getGameCapsuleImage(g);
 
                 return `
                     <div class="p-3 rounded-xl bg-slate-900/75 border border-steam-border/70 hover:border-steam-accent/40 transition">
@@ -1956,7 +1993,7 @@
             }
 
             tbody.innerHTML = filtered.map(g => {
-                const steamHeaderImg = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${g.appid}/header.jpg`;
+                const steamHeaderImg = getGameCapsuleImage(g);
                 const barPct = Math.min(100, Math.max(2, (g.hours / maxHoursInLib) * 100));
 
                 let cphDisplay = '';
@@ -2104,12 +2141,12 @@
             broadcastRouletteState();
         }
 
-        async function syncRouletteSteamLibraries() {
+        async function syncRouletteSteamLibraries(silentAutoLoad = false) {
             const p1Id = document.getElementById('rouletteP1SteamInput').value.trim();
             const p2Id = document.getElementById('rouletteP2SteamInput').value.trim();
 
             if (!p1Id) {
-                showToast('Please enter Player 1 Steam ID or Vanity username.', 'warning');
+                if (!silentAutoLoad) showToast('Please enter Player 1 Steam ID or Vanity username.', 'warning');
                 return;
             }
 
@@ -2129,16 +2166,20 @@
                 rouletteP2Account = null;
             }
 
-            recomputeRouletteAvailableLibrary(true);
-            rouletteP1Ready = false;
-            rouletteP2Ready = false;
+            recomputeRouletteAvailableLibrary(!silentAutoLoad);
+            if (!silentAutoLoad) {
+                rouletteP1Ready = false;
+                rouletteP2Ready = false;
+            }
             renderRouletteArena();
             broadcastRouletteState();
 
-            if (rouletteP2Account) {
-                showToast(`Synced Shared Games between ${rouletteP1Account.name} & ${rouletteP2Account.name} (${rouletteAvailableLibrary.length} shared)!`, 'success');
-            } else {
-                showToast(`Synced ${rouletteP1Account.name}'s Owned Games (${rouletteAvailableLibrary.length} titles)!`, 'success');
+            if (!silentAutoLoad) {
+                if (rouletteP2Account) {
+                    showToast(`Synced Shared Games between ${rouletteP1Account.name} & ${rouletteP2Account.name} (${rouletteAvailableLibrary.length} shared)!`, 'success');
+                } else {
+                    showToast(`Synced ${rouletteP1Account.name}'s Owned Games (${rouletteAvailableLibrary.length} titles)!`, 'success');
+                }
             }
             btn.innerHTML = orig;
         }
@@ -2199,10 +2240,14 @@
             const inPoolSet = new Set(roulettePool.map(g => Number(g.appid)));
 
             const subtitle = document.getElementById('pickerModalSubtitle');
-            if (rouletteP2Account) {
-                subtitle.textContent = `Showing Shared Games owned by both ${rouletteP1Account.name} and ${rouletteP2Account.name}`;
+            const p1Name = document.getElementById('rouletteP1NameInput')?.value || 'Player 1';
+            const p2Name = document.getElementById('rouletteP2NameInput')?.value || 'Player 2';
+            const p2InputVal = (document.getElementById('rouletteP2SteamInput')?.value || '').trim();
+
+            if (rouletteP2Account || p2InputVal) {
+                subtitle.textContent = `Showing Shared Games owned by both ${p1Name} and ${p2Name} (${rouletteAvailableLibrary.length} titles)`;
             } else {
-                subtitle.textContent = `Showing games owned by ${rouletteP1Account.name}`;
+                subtitle.textContent = `Showing games owned by ${p1Name} (${rouletteAvailableLibrary.length} titles)`;
             }
 
             document.getElementById('pickerPoolCountStatus').textContent = `${roulettePool.length} game${roulettePool.length === 1 ? '' : 's'} currently in Roulette`;
@@ -2215,7 +2260,7 @@
 
             container.innerHTML = matches.map(g => {
                 const isSelected = inPoolSet.has(Number(g.appid));
-                const steamImg = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${g.appid}/header.jpg`;
+                const steamImg = getGameCapsuleImage(g);
                 return `
                     <div onclick="toggleGameInPicker(${g.appid})" class="p-2.5 rounded-xl border ${isSelected ? 'bg-emerald-500/15 border-emerald-400/50' : 'bg-slate-900/80 border-steam-border hover:border-slate-600'} flex items-center justify-between gap-3 cursor-pointer transition">
                         <div class="flex items-center gap-3 min-w-0">
@@ -2260,6 +2305,162 @@
             renderLibraryPickerList();
             renderRouletteArena();
             broadcastRouletteState();
+        }
+
+        // =====================================================================
+        // LIVE SEARCH HELPER FOR ADDING ANY GAME (FORTNITE, LOL, STEAM, ETC.)
+        // =====================================================================
+        let customSearchDebounceTimer = null;
+
+        function hideCustomSearchSuggestions() {
+            const drop = document.getElementById('customGameSearchDropdown');
+            if (drop) drop.classList.add('hidden');
+        }
+
+        // Close dropdown if clicking outside
+        document.addEventListener('click', (e) => {
+            const wrapper = document.getElementById('customGameSearchWrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                hideCustomSearchSuggestions();
+            }
+        });
+
+        function handleCustomGameSearchInput(rawVal) {
+            const query = (rawVal || '').trim().toLowerCase();
+            const dropdown = document.getElementById('customGameSearchDropdown');
+            if (!dropdown) return;
+
+            // Gather immediate local suggestions from Owned Library + Popular Non-Steam Games (Fortnite, LoL, Valorant, etc.)
+            const suggestions = [];
+            const seenTitles = new Set();
+
+            // 1. Owned / Shared games matching query
+            rouletteAvailableLibrary.forEach(g => {
+                if (!query || g.title.toLowerCase().includes(query)) {
+                    const key = g.title.toLowerCase();
+                    if (!seenTitles.has(key) && suggestions.length < 5) {
+                        seenTitles.add(key);
+                        suggestions.push({
+                            appid: g.appid,
+                            title: g.title,
+                            hours: g.hours || 0,
+                            genre: 'In Your Library',
+                            customImg: g.customImg || null
+                        });
+                    }
+                }
+            });
+
+            // 2. Popular Non-Steam & Cross-Platform Games (Fortnite, League of Legends, Valorant, TFT, Minecraft...)
+            POPULAR_CUSTOM_GAMES.forEach(g => {
+                if (!query || g.title.toLowerCase().includes(query) || g.genre.toLowerCase().includes(query)) {
+                    const key = g.title.toLowerCase();
+                    if (!seenTitles.has(key) && suggestions.length < 10) {
+                        seenTitles.add(key);
+                        suggestions.push({
+                            appid: g.appid,
+                            title: g.title,
+                            hours: 0,
+                            genre: g.genre,
+                            customImg: g.customImg || null
+                        });
+                    }
+                }
+            });
+
+            renderCustomSearchDropdown(suggestions, query);
+
+            // 3. Also query CheapShark live for any other PC game if user typed >= 2 characters
+            if (customSearchDebounceTimer) clearTimeout(customSearchDebounceTimer);
+            if (query.length >= 2) {
+                customSearchDebounceTimer = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(query)}&limit=5`);
+                        if (!res.ok) return;
+                        const data = await res.json();
+                        if (Array.isArray(data)) {
+                            data.forEach(item => {
+                                const title = item.external || '';
+                                const key = title.toLowerCase();
+                                if (title && !seenTitles.has(key) && suggestions.length < 12) {
+                                    seenTitles.add(key);
+                                    suggestions.push({
+                                        appid: item.steamAppID ? Number(item.steamAppID) : (9900000 + Math.floor(Math.random() * 90000)),
+                                        title,
+                                        hours: 0,
+                                        genre: item.steamAppID ? 'Steam Store' : 'PC Game',
+                                        customImg: item. steamAppID ? null : (item.thumb || 'https://placehold.co/320x150/1e293b/66c0f4?text=' + encodeURIComponent(title))
+                                    });
+                                }
+                            });
+                            renderCustomSearchDropdown(suggestions, query);
+                        }
+                    } catch (e) {}
+                }, 260);
+            }
+        }
+
+        function renderCustomSearchDropdown(suggestions, query) {
+            const dropdown = document.getElementById('customGameSearchDropdown');
+            if (!dropdown) return;
+
+            if (suggestions.length === 0 && !query) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            let html = suggestions.map((s, idx) => {
+                const imgUrl = getGameCapsuleImage(s);
+                const safeTitle = s.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const safeGenre = (s.genre || 'Custom Pick').replace(/'/g, "\\'");
+                const safeImg = (s.customImg || '').replace(/'/g, "\\'");
+
+                return `
+                    <div onclick="selectGameFromSearchHelper(${s.appid}, '${safeTitle}', ${s.hours || 0}, '${safeGenre}', '${safeImg}')" class="p-2.5 hover:bg-slate-900 flex items-center justify-between gap-3 cursor-pointer transition">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <img src="${imgUrl}" onerror="this.src='https://placehold.co/120x56/1b2838/66c0f4?text=GAME'" class="w-12 h-6 rounded object-cover border border-steam-border shrink-0">
+                            <div class="truncate">
+                                <div class="text-xs font-bold text-white truncate">${s.title}</div>
+                                <div class="text-[10px] font-mono text-slate-400">${s.genre}</div>
+                            </div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold shrink-0">+ Add</span>
+                    </div>
+                `;
+            }).join('');
+
+            if (query.length > 0) {
+                const safeRaw = query.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                html += `
+                    <div onclick="addGameToRoulettePool()" class="p-2.5 bg-slate-900/90 hover:bg-slate-800 flex items-center justify-between gap-2 cursor-pointer text-xs text-emerald-400 font-bold">
+                        <span>+ Add "${query}" as custom game</span>
+                        <i class="ph-bold ph-arrow-right"></i>
+                    </div>
+                `;
+            }
+
+            dropdown.innerHTML = html;
+            dropdown.classList.remove('hidden');
+        }
+
+        function selectGameFromSearchHelper(appid, title, hours, genre, customImg) {
+            const defaultImg = customImg || (appid >= 9900000 ? `https://placehold.co/320x150/1b2838/66c0f4?text=${encodeURIComponent(title)}` : null);
+            roulettePool.unshift({
+                appid: Number(appid),
+                title,
+                hours: Number(hours) || 0,
+                p1Pct: 80,
+                p2Pct: 80,
+                genre: genre || 'Custom Pick',
+                customImg: defaultImg
+            });
+
+            const input = document.getElementById('rouletteCustomGameInput');
+            if (input) input.value = '';
+            hideCustomSearchSuggestions();
+            renderRouletteArena();
+            broadcastRouletteState();
+            showToast(`Added "${title}" to the Live Roulette Pool!`, 'success');
         }
 
         function computeRouletteOdds() {
@@ -2334,10 +2535,10 @@
 
             const listEl = document.getElementById('rouletteVotingList');
             if (oddsList.length === 0) {
-                listEl.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">No games in the roulette pool yet. Click "Pick Specific Games from Library" or type a game above!</div>`;
+                listEl.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">No games in the roulette pool yet. Click the big green "Pick Specific Games from Library" button or search any game above!</div>`;
             } else {
                 listEl.innerHTML = oddsList.map((item) => {
-                    const steamImg = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.appid}/header.jpg`;
+                    const steamImg = getGameCapsuleImage(item);
                     const hideP1 = rouletteBlindMode && !bothReady && (rouletteMyRole === 2 || rouletteP1Ready);
                     const hideP2 = rouletteBlindMode && !bothReady && (rouletteMyRole === 1 || rouletteP2Ready);
 
@@ -2356,7 +2557,7 @@
                         <div class="p-4 rounded-xl bg-slate-900/85 border ${item.synergy && (bothReady || !rouletteBlindMode) ? 'border-emerald-400/60' : 'border-steam-border'} grid grid-cols-1 lg:grid-cols-12 gap-4 items-center transition">
                             <div class="lg:col-span-4 flex items-center justify-between gap-3">
                                 <div class="flex items-center gap-3 min-w-0">
-                                    <img src="${steamImg}" onerror="this.src='https://placehold.co/120x56/1b2838/66c0f4?text=STEAM'" alt="${item.title}" class="w-16 h-8 rounded object-cover border border-steam-border shrink-0">
+                                    <img src="${steamImg}" onerror="this.src='https://placehold.co/120x56/1b2838/66c0f4?text=GAME'" alt="${item.title}" class="w-16 h-8 rounded object-cover border border-steam-border shrink-0">
                                     <div class="min-w-0">
                                         <div class="font-bold text-white text-xs sm:text-sm truncate flex items-center gap-1.5">
                                             <span>${item.title}</span>
@@ -2448,11 +2649,11 @@
             const cards = [];
             for (let i = 0; i < 18; i++) {
                 const g = source[i % source.length];
-                const steamImg = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${g.appid}/header.jpg`;
+                const steamImg = getGameCapsuleImage(g);
                 const oddsText = showExactOdds && g.probability ? `${g.probability.toFixed(0)}% Odds` : 'Ready to Spin';
                 cards.push(`
                     <div class="w-44 sm:w-48 h-32 rounded-xl bg-slate-900 border border-steam-border shrink-0 overflow-hidden flex flex-col justify-between p-2 relative group">
-                        <img src="${steamImg}" onerror="this.src='https://placehold.co/180x84/1b2838/66c0f4?text=STEAM'" alt="${g.title}" class="w-full h-20 rounded-lg object-cover">
+                        <img src="${steamImg}" onerror="this.src='https://placehold.co/180x84/1b2838/66c0f4?text=GAME'" alt="${g.title}" class="w-full h-20 rounded-lg object-cover">
                         <div class="flex items-center justify-between gap-1 mt-1 px-0.5">
                             <span class="text-xs font-bold text-white truncate">${g.title}</span>
                             <span class="text-[10px] font-mono text-emerald-400 shrink-0">${oddsText}</span>
@@ -2508,27 +2709,41 @@
             const input = document.getElementById('rouletteCustomGameInput');
             const title = input.value.trim();
             if (!title) {
-                showToast('Enter a game title to add to the roulette pool.', 'warning');
+                showToast('Enter or search a game title to add to the roulette pool.', 'warning');
                 return;
             }
+            hideCustomSearchSuggestions();
             const btn = document.getElementById('addRouletteGameBtn');
             btn.disabled = true;
 
+            // 1. Check Popular Non-Steam & Cross-Platform dictionary first (Fortnite, LoL, Valorant, etc.)
+            const nonSteamMatch = POPULAR_CUSTOM_GAMES.find(g => g.title.toLowerCase() === title.toLowerCase() || g.title.toLowerCase().includes(title.toLowerCase()));
+            // 2. Check Owned Library
             const ownedMatch = rouletteAvailableLibrary.find(g => g.title.toLowerCase().includes(title.toLowerCase()));
-            let foundAppId = ownedMatch ? ownedMatch.appid : 730;
-            let resolvedTitle = ownedMatch ? ownedMatch.title : title;
 
-            if (!ownedMatch) {
+            let foundAppId = ownedMatch ? ownedMatch.appid : (nonSteamMatch ? nonSteamMatch.appid : (9900000 + Math.floor(Math.random() * 90000)));
+            let resolvedTitle = ownedMatch ? ownedMatch.title : (nonSteamMatch ? nonSteamMatch.title : title);
+            let customImg = nonSteamMatch ? nonSteamMatch.customImg : null;
+
+            if (!ownedMatch && !nonSteamMatch) {
                 try {
                     const res = await fetch(`https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(title)}&limit=1`);
                     if (res.ok) {
                         const data = await res.json();
                         if (data && data.length > 0) {
                             resolvedTitle = data[0].external || title;
-                            if (data[0].steamAppID) foundAppId = Number(data[0].steamAppID);
+                            if (data[0].steamAppID) {
+                                foundAppId = Number(data[0].steamAppID);
+                            } else if (data[0].thumb) {
+                                customImg = data[0].thumb;
+                            }
                         }
                     }
                 } catch (e) {}
+            }
+
+            if (!customImg && foundAppId >= 9900000) {
+                customImg = `https://placehold.co/320x150/1b2838/66c0f4?text=${encodeURIComponent(resolvedTitle)}`;
             }
 
             roulettePool.unshift({
@@ -2537,7 +2752,8 @@
                 hours: ownedMatch ? ownedMatch.hours : 0.0,
                 p1Pct: 80,
                 p2Pct: 80,
-                genre: 'Custom Pick'
+                genre: nonSteamMatch ? nonSteamMatch.genre : 'Custom Pick',
+                customImg
             });
             input.value = '';
             btn.disabled = false;
@@ -2588,7 +2804,7 @@
             const jitterRatio = (Math.random() - 0.5) * 0.45;
 
             if (mqttClient && mqttClient.connected) {
-                const topicBase = `steampulse/v35/live/${rouletteRoomCode}`;
+                const topicBase = `steampulse/v36/live/${rouletteRoomCode}`;
                 mqttClient.publish(`${topicBase}/spin`, JSON.stringify({
                     sender: myClientId,
                     winnerAppId: winner.appid,
@@ -2632,11 +2848,11 @@
             track.style.transform = 'translateX(0px)';
 
             track.innerHTML = reelItems.map((g, idx) => {
-                const steamImg = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${g.appid}/header.jpg`;
+                const steamImg = getGameCapsuleImage(g);
                 const isWinCard = idx === WIN_INDEX;
                 return `
                     <div id="${isWinCard ? 'winningReelCard' : ''}" class="w-44 sm:w-48 h-32 rounded-xl bg-slate-900 border ${isWinCard ? 'border-emerald-400/80' : 'border-steam-border'} shrink-0 overflow-hidden flex flex-col justify-between p-2">
-                        <img src="${steamImg}" onerror="this.src='https://placehold.co/180x84/1b2838/66c0f4?text=STEAM'" alt="${g.title}" class="w-full h-20 rounded-lg object-cover">
+                        <img src="${steamImg}" onerror="this.src='https://placehold.co/180x84/1b2838/66c0f4?text=GAME'" alt="${g.title}" class="w-full h-20 rounded-lg object-cover">
                         <div class="flex items-center justify-between gap-1 mt-1 px-0.5">
                             <span class="text-xs font-bold text-white truncate">${g.title}</span>
                             <span class="text-[10px] font-mono text-emerald-400 shrink-0">${g.probability.toFixed(0)}%</span>
@@ -2685,11 +2901,23 @@
 
                 const p1Name = document.getElementById('rouletteP1NameInput').value || 'P1';
                 const p2Name = document.getElementById('rouletteP2NameInput').value || 'P2';
-                document.getElementById('winnerGameImg').src = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${winner.appid}/header.jpg`;
+                document.getElementById('winnerGameImg').src = getGameCapsuleImage(winner);
                 document.getElementById('winnerGameTitle').textContent = winner.title;
                 document.getElementById('winnerOddsBadge').textContent = `${winner.probability.toFixed(1)}% Win Probability`;
                 document.getElementById('winnerGameVoteSummary').textContent = `${p1Name}: ${winner.p1Pct}% • ${p2Name}: ${winner.p2Pct}% • Combined Match Score: ${Math.round((winner.p1Pct + winner.p2Pct) / 2)}%`;
-                document.getElementById('winnerSteamLaunchBtn').href = `steam://run/${winner.appid}`;
+
+                const launchBtn = document.getElementById('winnerSteamLaunchBtn');
+                const launchLabel = document.getElementById('winnerLaunchBtnLabel');
+                if (Number(winner.appid) >= 9900000) {
+                    launchBtn.href = '#';
+                    launchBtn.onclick = (e) => { e.preventDefault(); showToast(`Ready to play ${winner.title}!`, 'success'); };
+                    if (launchLabel) launchLabel.textContent = 'Ready to Play!';
+                } else {
+                    launchBtn.href = `steam://run/${winner.appid}`;
+                    launchBtn.onclick = null;
+                    if (launchLabel) launchLabel.textContent = 'Launch in Steam';
+                }
+
                 document.getElementById('rouletteWinnerBanner').classList.remove('hidden');
 
                 showToast(`Winner Selected: ${winner.title}!`, 'success');
@@ -2706,11 +2934,15 @@
             triggerLiveRouletteSpin(true);
         }
 
+        // Broadcasts the entire room state (including Steam IDs & Owned/Shared Library!) with retain: true
         function broadcastRouletteState() {
             const payload = {
                 sender: myClientId,
                 room: rouletteRoomCode,
                 pool: roulettePool,
+                availableLibrary: rouletteAvailableLibrary.slice(0, 400),
+                p1SteamId: document.getElementById('rouletteP1SteamInput')?.value.trim() || '',
+                p2SteamId: document.getElementById('rouletteP2SteamInput')?.value.trim() || '',
                 p1Ready: rouletteP1Ready,
                 p2Ready: rouletteP2Ready,
                 blindMode: rouletteBlindMode,
@@ -2719,14 +2951,25 @@
             };
 
             if (mqttClient && mqttClient.connected) {
-                const topicBase = `steampulse/v35/live/${rouletteRoomCode}`;
-                mqttClient.publish(`${topicBase}/state`, JSON.stringify(payload));
+                const topicBase = `steampulse/v36/live/${rouletteRoomCode}`;
+                mqttClient.publish(`${topicBase}/state`, JSON.stringify(payload), { qos: 0, retain: true });
             }
         }
 
+        // Includes P1 and P2 Steam IDs directly in the Room Invite Link so Player 2 never sees an empty state!
         function copyLiveRouletteRoomLink() {
-            const shareUrl = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(rouletteRoomCode)}&role=2`;
-            copyTextToClipboard(shareUrl, `Copied Live Room Link (${rouletteRoomCode})! Send it to Player 2 - everything syncs live!`);
+            const p1Id = document.getElementById('rouletteP1SteamInput')?.value.trim() || '';
+            const p2Id = document.getElementById('rouletteP2SteamInput')?.value.trim() || '';
+            const query = new URLSearchParams();
+            query.set('room', rouletteRoomCode);
+            query.set('role', '2');
+            if (p1Id) query.set('p1', p1Id);
+            if (p2Id) query.set('p2', p2Id);
+
+            broadcastRouletteState();
+
+            const shareUrl = `${window.location.origin}${window.location.pathname}?${query.toString()}`;
+            copyTextToClipboard(shareUrl, `Copied Live Room Link (${rouletteRoomCode})! Your friend will automatically get your loaded Steam IDs & games!`);
         }
 
         function addCustomGameModal(show) {
@@ -2803,16 +3046,25 @@
             copyTextToClipboard(text, 'Copied your SteamPulse stats summary to clipboard!');
         }
 
-        window.onload = function() {
+        window.onload = async function() {
             recomputeRouletteAvailableLibrary(true);
+
+            let urlP1 = null;
+            let urlP2 = null;
 
             try {
                 const params = new URLSearchParams(window.location.search);
                 const joinedRoom = params.get('room');
                 const joinedRole = Number(params.get('role'));
+                urlP1 = params.get('p1');
+                urlP2 = params.get('p2');
 
                 if (joinedRoom) {
+                    joinedViaSharedRoomLink = true;
                     rouletteRoomCode = joinedRoom.trim();
+                    if (urlP1) document.getElementById('rouletteP1SteamInput').value = urlP1.trim();
+                    if (urlP2) document.getElementById('rouletteP2SteamInput').value = urlP2.trim();
+
                     if (joinedRole === 2) {
                         setRouletteRole(2);
                     }
@@ -2826,7 +3078,12 @@
             renderVersusArena();
             renderRouletteArena();
 
-            handleAnalyzeAccount();
+            // If a friend opened the room link with P1/P2 Steam IDs in the URL, automatically load the shared library in the background!
+            if (joinedViaSharedRoomLink && urlP1) {
+                await syncRouletteSteamLibraries(true);
+            } else {
+                handleAnalyzeAccount();
+            }
         };
     </script>
 </body>
