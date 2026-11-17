@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SteamPulse — Steam Account Worth & Playtime Calculator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        steam: {
+                            bg: '#0b111e',
+                            card: '#131d31',
+                            cardHover: '#192640',
+                            navy: '#1b2838',
+                            accent: '#66c0f4',
+                            blue: '#1a9fff',
+                            green: '#a4d007',
+                            border: '#233454'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0b111e;
+            background-image: 
+                radial-gradient(at 15% 10%, rgba(102, 192, 244, 0.12) 0px, transparent 45%),
+                radial-gradient(at 85% 20%, rgba(26, 159, 255, 0.08) 0px, transparent 50%),
+                radial-gradient(at 50% 90%, rgba(27, 40, 56, 0.4) 0px, transparent 60%);
+            background-attachment: fixed;
+            color: #e2e8f0;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b111e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #233454;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #66c0f4;
+        }
+        .glass-panel {
+            background: rgba(19, 29, 49, 0.78);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(102, 192, 244, 0.14);
+        }
+        .steam-glow {
+            box-shadow: 0 0 25px -5px rgba(102, 192, 244, 0.25);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-steam-accent selection:text-slate-950">
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-30 glass-panel border-b border-steam-border/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-steam-blue to-cyan-400 flex items-center justify-center shadow-lg shadow-steam-blue/25">
+                    <i class="ph-fill ph-steam-logo text-2xl text-slate-950"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-extrabold text-lg tracking-tight text-white">Steam<span class="text-steam-accent">Pulse</span></span>
+                        <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded-full bg-steam-blue/15 text-steam-accent border border-steam-accent/30 font-semibold">v2.4</span>
+                    </div>
+                    <p class="text-xs text-slate-400 hidden sm:block">Account Worth, Playtime & Pile of Shame Analytics</p>
+                </div>
+            </div>
+
+            <!-- Right Controls -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Currency Selector -->
+                <div class="relative flex items-center bg-slate-900/90 border border-steam-border rounded-lg p-1 text-xs font-mono">
+                    <button onclick="setCurrency('CHF')" id="curr-CHF" class="px-2.5 py-1 rounded-md transition-all font-semibold bg-steam-blue text-slate-950">CHF</button>
+                    <button onclick="setCurrency('EUR')" id="curr-EUR" class="px-2.5 py-1 rounded-md transition-all text-slate-400 hover:text-white">EUR</button>
+                    <button onclick="setCurrency('USD')" id="curr-USD" class="px-2.5 py-1 rounded-md transition-all text-slate-400 hover:text-white">USD</button>
+                </div>
+
+                <!-- Live Price Sync Button -->
+                <button onclick="fetchLiveCheapSharkPrices()" id="livePriceBtn" title="Fetch real-time discounts via public CheapShark API" class="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-800 text-xs font-medium text-emerald-400 border border-emerald-500/30 transition">
+                    <i class="ph-bold ph-tag"></i>
+                    <span>Sync Live Store Prices</span>
+                </button>
+
+                <!-- GitHub + Netlify/Vercel Guide Modal Trigger -->
+                <button onclick="toggleDeployModal(true)" class="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-gradient-to-r from-steam-blue to-cyan-500 hover:from-cyan-400 hover:to-steam-blue text-slate-950 font-semibold text-xs sm:text-sm shadow-md shadow-steam-blue/20 transition">
+                    <i class="ph-bold ph-github-logo text-base"></i>
+                    <span>GitHub & Hosting Guide</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Search, Presets & API Config Panel -->
+        <section class="glass-panel rounded-2xl p-4 sm:p-6 shadow-xl">
+            <div class="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
+                
+                <!-- Steam ID Search Input -->
+                <div class="flex-1 flex flex-col sm:flex-row gap-2.5">
+                    <div class="relative flex-1">
+                        <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                        <input 
+                            type="text" 
+                            id="steamIdInput" 
+                            value="76561198042819384"
+                            placeholder="Enter SteamID64 (e.g., 76561198...) or Vanity URL..." 
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-steam-border rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-steam-accent focus:ring-1 focus:ring-steam-accent font-mono"
+                        >
+                    </div>
+                    <button onclick="handleAnalyzeAccount()" id="analyzeBtn" class="px-5 py-2.5 rounded-xl bg-steam-accent hover:bg-cyan-300 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 transition shrink-0 shadow-lg shadow-steam-accent/15">
+                        <i class="ph-bold ph-lightning"></i>
+                        <span>Calculate Worth</span>
+                    </button>
+                </div>
+
+                <!-- Quick Demo Profile Switcher + API Drawer Button -->
+                <div class="flex flex-wrap items-center justify-between sm:justify-end gap-2 border-t lg:border-t-0 pt-3 lg:pt-0 border-steam-border/60">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-xs text-slate-400 mr-1 font-medium">Presets:</span>
+                        <button onclick="loadPresetProfile('core')" id="preset-core" class="text-xs px-2.5 py-1.5 rounded-lg bg-steam-blue/20 border border-steam-accent/50 text-steam-accent font-medium transition">
+                            🎮 Core Gamer (28 Games)
+                        </button>
+                        <button onclick="loadPresetProfile('collector')" id="preset-collector" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-900/70 hover:bg-slate-800 border border-steam-border text-slate-300 transition">
+                            💎 Whale Collector
+                        </button>
+                        <button onclick="loadPresetProfile('competitive')" id="preset-competitive" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-900/70 hover:bg-slate-800 border border-steam-border text-slate-300 transition">
+                            🏆 Esports Grinder
+                        </button>
+                    </div>
+
+                    <button onclick="toggleApiDrawer()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-steam-border flex items-center gap-1.5 transition">
+                        <i class="ph-bold ph-gear text-steam-accent"></i>
+                        <span>Steam API Settings</span>
+                        <i id="apiDrawerChevron" class="ph ph-caret-down transition-transform"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Collapsible Steam Web API Configuration Drawer -->
+            <div id="apiSettingsDrawer" class="hidden mt-4 pt-4 border-t border-steam-border/80">
+                <div class="bg-slate-950/70 border border-steam-border rounded-xl p-4">
+                    <div class="flex flex-col md:flex-row justify-between gap-4 mb-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i class="ph-fill ph-key text-steam-accent"></i>
+                                Live Steam Web API Connection
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                                By default, Valve blocks direct browser requests via CORS to protect your Steam API key. To fetch live data for any public SteamID64, either connect your <strong class="text-slate-200">Netlify/Vercel Serverless endpoint</strong> (recommended, see top-right guide) or provide a Steam API Key with a CORS proxy below.
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span id="connectionModeBadge" class="px-2.5 py-1 rounded-full text-xs font-mono bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                                Mode: Interactive Hybrid Sandbox
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Serverless Endpoint URL (Netlify / Vercel)</label>
+                            <input type="text" id="serverlessEndpointInput" value="/.netlify/functions/steam" placeholder="/.netlify/functions/steam or /api/steam" class="w-full px-3 py-2 bg-slate-900 border border-steam-border rounded-lg text-xs text-white font-mono focus:outline-none focus:border-steam-accent">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Optional Direct Steam Web API Key</label>
+                            <input type="password" id="steamApiKeyInput" placeholder="Paste 32-char Steam API Key..." class="w-full px-3 py-2 bg-slate-900 border border-steam-border rounded-lg text-xs text-white font-mono focus:outline-none focus:border-steam-accent">
+                        </div>
+                        <div class="flex items-end gap-2">
+                            <button onclick="saveApiSettings()" class="w-full py-2 px-4 bg-steam-blue hover:bg-cyan-400 text-slate-950 font-semibold rounded-lg text-xs transition flex items-center justify-center gap-1.5">
+                                <i class="ph-bold ph-check-circle"></i>
+                                Save & Test Connection
+                            </button>
+                            <button onclick="addCustomGameModal(true)" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-lg text-xs transition shrink-0 border border-steam-border" title="Manually add a game to your calculation">
+                                + Add Game
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Player Profile Banner -->
+        <section class="glass-panel rounded-2xl p-5 sm:p-6 relative overflow-hidden">
+            <div class="absolute -right-12 -top-12 w-56 h-56 bg-steam-blue/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+                <div class="flex items-center gap-4 sm:gap-5">
+                    <!-- Avatar with Status Ring -->
+                    <div class="relative shrink-0">
+                        <img id="profileAvatar" src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&w=200&q=80" onerror="this.src='https://placehold.co/120x120/1b2838/66c0f4?text=STEAM'" alt="Avatar" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-steam-accent shadow-lg shadow-steam-accent/20">
+                        <span class="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-slate-950 border-2 border-slate-950">ONLINE</span>
+                    </div>
+
+                    <!-- User Details -->
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <h1 id="profileName" class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">CyberSwiss_99</h1>
+                            <span id="profileLevel" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-steam-blue/20 text-steam-accent border border-steam-accent/40">
+                                LVL 64
+                            </span>
+                            <span class="px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                                <i class="ph-fill ph-shield-check"></i> VAC Clean
+                            </span>
+                        </div>
+                        <p id="profileBio" class="text-xs sm:text-sm text-slate-400 mt-1">
+                            SteamID64: <span id="profileSteamId" class="font-mono text-slate-300">76561198042819384</span> • Member since <span id="profileYear" class="text-slate-200 font-medium">2014 (12 Years)</span>
+                        </p>
+                        <div class="flex flex-wrap items-center gap-3 mt-2.5 text-xs text-slate-400">
+                            <span class="flex items-center gap-1 text-steam-accent">
+                                <i class="ph-fill ph-trophy"></i> <span id="profileBadges">48</span> Badges Earned
+                            </span>
+                            <span>•</span>
+                            <span class="flex items-center gap-1">
+                                <i class="ph-fill ph-sparkle text-amber-400"></i> Favorite Genre: <strong id="profileGenre" class="text-slate-200">Action RPG & Tactical Shooter</strong>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Share / Export Summary -->
+                <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-steam-border/60">
+                    <button onclick="addCustomGameModal(true)" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-steam-border text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                        <i class="ph-bold ph-plus-circle text-steam-accent"></i>
+                        <span>Add Game to Library</span>
+                    </button>
+                    <button onclick="copyShareSummary()" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-steam-border text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                        <i class="ph-bold ph-share-network text-steam-accent"></i>
+                        <span>Copy Stats Card</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4 Executive KPI Cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Card 1: Total Account Worth -->
+            <div class="glass-panel rounded-2xl p-5 hover:border-steam-accent/40 transition group">
+                <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                    <span>Total Account Worth</span>
+                    <span class="w-8 h-8 rounded-lg bg-steam-blue/15 text-steam-accent flex items-center justify-center group-hover:scale-110 transition">
+                        <i class="ph-fill ph-wallet text-lg"></i>
+                    </span>
+                </div>
+                <div class="mt-3 flex items-baseline gap-2">
+                    <span id="kpiRetailWorth" class="text-2xl sm:text-3xl font-extrabold font-mono text-white">CHF 1,245.50</span>
+                </div>
+                <div class="mt-3 pt-3 border-t border-steam-border/60 flex items-center justify-between text-xs">
+                    <span class="text-slate-400">Current Sale Value:</span>
+                    <span id="kpiSaleWorth" class="font-mono font-semibold text-emerald-400">CHF 412.80</span>
+                </div>
+            </div>
+
+            <!-- Card 2: Total Combined Playtime -->
+            <div class="glass-panel rounded-2xl p-5 hover:border-steam-accent/40 transition group">
+                <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                    <span>Total Playtime</span>
+                    <span class="w-8 h-8 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center group-hover:scale-110 transition">
+                        <i class="ph-fill ph-clock-countdown text-lg"></i>
+                    </span>
+                </div>
+                <div class="mt-3 flex items-baseline gap-2">
+                    <span id="kpiTotalHours" class="text-2xl sm:text-3xl font-extrabold font-mono text-white">4,182 hrs</span>
+                </div>
+                <div class="mt-3 pt-3 border-t border-steam-border/60 flex items-center justify-between text-xs">
+                    <span class="text-slate-400">Real-Life Time:</span>
+                    <span id="kpiTotalDays" class="font-mono font-semibold text-purple-300">174.2 Full Days</span>
+                </div>
+            </div>
+
+            <!-- Card 3: Cost Efficiency -->
+            <div class="glass-panel rounded-2xl p-5 hover:border-steam-accent/40 transition group">
+                <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                    <span>Entertainment Efficiency</span>
+                    <span class="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition">
+                        <i class="ph-fill ph-trend-down text-lg"></i>
+                    </span>
+                </div>
+                <div class="mt-3 flex items-baseline gap-2">
+                    <span id="kpiCostPerHour" class="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-400">CHF 0.30</span>
+                    <span class="text-xs text-slate-400 font-mono">/ hour</span>
+                </div>
+                <div class="mt-3 pt-3 border-t border-steam-border/60 flex items-center justify-between text-xs">
+                    <span class="text-slate-400">Avg per Game:</span>
+                    <span id="kpiAvgGamePrice" class="font-mono font-semibold text-slate-200">CHF 44.48</span>
+                </div>
+            </div>
+
+            <!-- Card 4: Library Completion & Pile of Shame -->
+            <div class="glass-panel rounded-2xl p-5 hover:border-steam-accent/40 transition group">
+                <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                    <span>Library Played Rate</span>
+                    <span class="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center group-hover:scale-110 transition">
+                        <i class="ph-fill ph-books text-lg"></i>
+                    </span>
+                </div>
+                <div class="mt-3 flex items-baseline justify-between">
+                    <span id="kpiCompletionPct" class="text-2xl sm:text-3xl font-extrabold font-mono text-white">78.6%</span>
+                    <span id="kpiPlayedCount" class="text-xs font-mono text-slate-400">22 / 28 Played</span>
+                </div>
+                <!-- Progress Bar -->
+                <div class="mt-3 w-full bg-slate-900 h-2 rounded-full overflow-hidden p-0.5 border border-steam-border">
+                    <div id="kpiCompletionBar" class="bg-gradient-to-r from-steam-blue to-emerald-400 h-full rounded-full transition-all duration-500" style="width: 78%"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Visual Breakdown Row: Playtime Distribution & Pile of Shame -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Left 2 Cols: Top 5 Most Played Games Breakdown -->
+            <div class="lg:col-span-2 glass-panel rounded-2xl p-5 sm:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                            <i class="ph-fill ph-chart-bar text-steam-accent"></i>
+                            Playtime Distribution (Top 5 Addictions)
+                        </h2>
+                        <p class="text-xs text-slate-400">How your total gaming hours are concentrated across your top titles</p>
+                    </div>
+                    <span id="top5ShareBadge" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-steam-blue/15 text-steam-accent border border-steam-accent/30 self-start sm:self-auto">
+                        Top 5 = 84% of all playtime
+                    </span>
+                </div>
+
+                <!-- Dynamic Bars Container -->
+                <div id="topGamesBarsContainer" class="space-y-3.5">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- Right 1 Col: Pile of Shame & Value Highlights -->
+            <div class="glass-panel rounded-2xl p-5 sm:p-6 flex flex-col justify-between space-y-4">
+                <div>
+                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                        <i class="ph-fill ph-fire text-amber-400"></i>
+                        Pile of Shame & Insights
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Unplayed backlog & best value champions</p>
+                </div>
+
+                <div class="space-y-3">
+                    <!-- Unplayed Waste Box -->
+                    <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/25">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-rose-300">Unplayed Games Worth</span>
+                            <i class="ph-fill ph-warning-circle text-rose-400 text-lg"></i>
+                        </div>
+                        <div id="shameWorthValue" class="text-2xl font-mono font-extrabold text-rose-400 mt-1">
+                            CHF 214.50
+                        </div>
+                        <p id="shameCountText" class="text-xs text-slate-400 mt-1">
+                            6 games bought that currently have 0.0 hours played.
+                        </p>
+                    </div>
+
+                    <!-- Best Value Champion Box -->
+                    <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Best Value Paid Game</span>
+                            <i class="ph-fill ph-medal text-emerald-400 text-lg"></i>
+                        </div>
+                        <div id="bestValueGameTitle" class="text-base font-bold text-white mt-1 truncate">
+                            Risk of Rain 2
+                        </div>
+                        <p id="bestValueGameStats" class="text-xs font-mono text-emerald-400 mt-0.5">
+                            412 hrs • CHF 0.06 / hour
+                        </p>
+                    </div>
+
+                    <!-- Most Expensive Unplayed or Least Efficient -->
+                    <div class="p-4 rounded-xl bg-slate-900/90 border border-steam-border">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Daily Gaming Average</span>
+                            <i class="ph-fill ph-calendar-check text-steam-accent text-lg"></i>
+                        </div>
+                        <div id="dailyAverageHours" class="text-base font-mono font-bold text-white mt-1">
+                            0.95 Hours / Day
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5">
+                            Averaged across total account age
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Complete Searchable & Sortable Game Library -->
+        <section class="glass-panel rounded-2xl p-5 sm:p-6">
+            <!-- Header & Filter Tabs -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-steam-border">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="ph-fill ph-game-controller text-steam-accent"></i>
+                        Complete Game Library Breakdown
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Click any column or use filters to inspect playtime, retail value, and cost per hour</p>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="flex flex-wrap items-center gap-1.5 bg-slate-950/80 p-1.5 rounded-xl border border-steam-border">
+                    <button onclick="setLibraryFilter('all')" id="tab-all" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-steam-blue text-slate-950 transition">
+                        All Games
+                    </button>
+                    <button onclick="setLibraryFilter('binge')" id="tab-binge" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
+                        🔥 100+ Hrs Club
+                    </button>
+                    <button onclick="setLibraryFilter('shame')" id="tab-shame" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
+                        🕸️ Pile of Shame (0h)
+                    </button>
+                    <button onclick="setLibraryFilter('paid')" id="tab-paid" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
+                        💰 Paid Titles Only
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search & Sort Controls -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 my-4">
+                <div class="relative flex-1 max-w-md">
+                    <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input 
+                        type="text" 
+                        id="gameSearchInput" 
+                        oninput="renderLibraryTable()"
+                        placeholder="Filter library by game title or genre..." 
+                        class="w-full pl-9 pr-4 py-2 bg-slate-950/90 border border-steam-border rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-steam-accent"
+                    >
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <label class="text-xs text-slate-400 font-medium shrink-0">Sort by:</label>
+                    <select id="gameSortSelect" onchange="renderLibraryTable()" class="bg-slate-950 border border-steam-border rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-steam-accent">
+                        <option value="hours-desc">Playtime: High to Low</option>
+                        <option value="hours-asc">Playtime: Low to High</option>
+                        <option value="price-desc">Store Price: High to Low</option>
+                        <option value="price-asc">Store Price: Low to High</option>
+                        <option value="cph-asc">Best Value (Lowest Cost/Hr)</option>
+                        <option value="name-asc">Title (A - Z)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Responsive Table -->
+            <div class="overflow-x-auto -mx-5 sm:mx-0">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-steam-border text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                            <th class="py-3 px-4">Game Title</th>
+                            <th class="py-3 px-4">Playtime</th>
+                            <th class="py-3 px-4">Retail Price</th>
+                            <th class="py-3 px-4 hidden md:table-cell">Current Deal</th>
+                            <th class="py-3 px-4">Cost / Hour</th>
+                            <th class="py-3 px-4 text-right">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="libraryTableBody" class="divide-y divide-steam-border/50 text-sm">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-steam-border/60 py-6 mt-12 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p>SteamPulse Analytics • Ready for GitHub + Netlify / Vercel Serverless Deployment</p>
+            <p>Uses Steam Web API & Public CheapShark Store Pricing API. Not affiliated with Valve Corporation.</p>
+        </div>
+    </footer>
+
+    <!-- ================================================================= -->
+    <!-- MODAL 1: GitHub + Netlify / Vercel Serverless Deployment Guide    -->
+    <!-- ================================================================= -->
+    <div id="deployModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col border border-steam-accent/30 shadow-2xl overflow-hidden">
+            
+            <!-- Modal Header -->
+            <div class="p-5 border-b border-steam-border flex items-center justify-between bg-slate-900/70">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-lg bg-steam-blue/20 text-steam-accent flex items-center justify-center">
+                        <i class="ph-bold ph-cloud-arrow-up text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-white">Connect to GitHub & Host on Netlify / Vercel</h3>
+                        <p class="text-xs text-slate-400">How to fetch live Steam API data securely without exposing your API key</p>
+                    </div>
+                </div>
+                <button onclick="toggleDeployModal(false)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-5 sm:p-6 overflow-y-auto space-y-5 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                
+                <!-- Why Serverless Box -->
+                <div class="p-4 rounded-xl bg-steam-blue/10 border border-steam-accent/30">
+                    <h4 class="font-bold text-white flex items-center gap-1.5 mb-1">
+                        <i class="ph-fill ph-info text-steam-accent"></i>
+                        Why do you need a tiny Serverless Function on Netlify or Vercel?
+                    </h4>
+                    <p class="text-xs text-slate-300">
+                        Valve's Steam Web API (<code class="text-steam-accent font-mono">api.steampowered.com</code>) blocks direct browser JavaScript requests via <strong>CORS</strong> so strangers can't steal your private Steam API Key from your website's source code. By dropping the file below into your GitHub repository, Netlify (or Vercel) automatically creates a secure backend endpoint for free!
+                    </p>
+                </div>
+
+                <!-- Step by Step Checklist -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="p-3.5 rounded-xl bg-slate-900/90 border border-steam-border">
+                        <span class="text-xs font-mono font-bold text-steam-accent">STEP 1</span>
+                        <h5 class="font-bold text-white mt-1">Push to GitHub</h5>
+                        <p class="text-xs text-slate-400 mt-1">Save this <code class="text-slate-200">index.html</code> file and create <code class="text-slate-200">netlify/functions/steam.js</code> in your GitHub repository.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-900/90 border border-steam-border">
+                        <span class="text-xs font-mono font-bold text-steam-accent">STEP 2</span>
+                        <h5 class="font-bold text-white mt-1">Import to Netlify</h5>
+                        <p class="text-xs text-slate-400 mt-1">Log into <strong>Netlify.com</strong> or <strong>Vercel.com</strong>, click <em>"Add New Site → Import from GitHub"</em> and select your repo.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-900/90 border border-steam-border">
+                        <span class="text-xs font-mono font-bold text-steam-accent">STEP 3</span>
+                        <h5 class="font-bold text-white mt-1">Add API Env Variable</h5>
+                        <p class="text-xs text-slate-400 mt-1">In Netlify Site Settings → <em>Environment Variables</em>, add <code class="text-emerald-400">STEAM_API_KEY</code> from <span class="underline">steamcommunity.com/dev/apikey</span>.</p>
+                    </div>
+                </div>
+
+                <!-- Ready-to-Copy Serverless Code -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-mono text-xs font-bold text-steam-accent">File: netlify/functions/steam.js</span>
+                        <button onclick="copyServerlessCode()" class="px-3 py-1 rounded-lg bg-steam-blue hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition">
+                            <i class="ph-bold ph-copy"></i>
+                            <span>Copy Backend Code</span>
+                        </button>
+                    </div>
+                    <pre id="serverlessCodeBlock" class="p-4 rounded-xl bg-slate-950 border border-steam-border font-mono text-xs text-cyan-300 overflow-x-auto leading-relaxed">// Save as: netlify/functions/steam.js (or api/steam.js on Vercel)
+exports.handler = async function(event) {
+  const steamId = event.queryStringParameters.steamid;
+  const apiKey = process.env.STEAM_API_KEY;
+
+  if (!steamId || !apiKey) {
+    return { statusCode: 400, body: JSON.stringify({ error: "Missing steamid or STEAM_API_KEY" }) };
+  }
+
+  try {
+    // 1. Fetch Player Summary (Avatar, Name, Creation Date)
+    const profileUrl = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${apiKey}&steamids=${steamId}`;
+    // 2. Fetch Owned Games + Playtime Forever
+    const gamesUrl = `https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${apiKey}&steamid=${steamId}&include_appinfo=1&include_played_free_games=1&format=json`;
+
+    const [profileRes, gamesRes] = await Promise.all([fetch(profileUrl), fetch(gamesUrl)]);
+    const profileData = await profileRes.json();
+    const gamesData = await gamesRes.json();
+
+    return {
+      statusCode: 200,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      body: JSON.stringify({
+        player: profileData.response?.players?.[0] || null,
+        games: gamesData.response?.games || []
+      })
+    };
+  } catch (err) {
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+  }
+};</pre>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-steam-border bg-slate-900/70 flex justify-end">
+                <button onclick="toggleDeployModal(false)" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition">
+                    Got It, Close Guide
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- MODAL 2: Add Custom Game + Live CheapShark Price Lookup           -->
+    <!-- ================================================================= -->
+    <div id="addGameModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel rounded-2xl max-w-md w-full border border-steam-accent/30 shadow-2xl overflow-hidden">
+            <div class="p-5 border-b border-steam-border flex items-center justify-between bg-slate-900/70">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="ph-fill ph-plus-circle text-steam-accent"></i>
+                    Add Game & Lookup Live Price
+                </h3>
+                <button onclick="addCustomGameModal(false)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 text-xs">
+                <div>
+                    <label class="block text-slate-400 font-medium mb-1">Game Title</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="newGameTitle" placeholder="e.g., Helldivers 2, Factorio..." class="flex-1 px-3 py-2 bg-slate-950 border border-steam-border rounded-lg text-white focus:outline-none focus:border-steam-accent">
+                        <button onclick="lookupSingleGamePrice()" id="lookupPriceBtn" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-steam-accent border border-steam-border rounded-lg font-semibold shrink-0">
+                            Lookup Price
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-400 font-medium mb-1">Hours Played</label>
+                        <input type="number" id="newGameHours" value="45" min="0" step="0.5" class="w-full px-3 py-2 bg-slate-950 border border-steam-border rounded-lg text-white font-mono focus:outline-none focus:border-steam-accent">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-medium mb-1">Retail Price (USD Base)</label>
+                        <input type="number" id="newGamePrice" value="39.99" min="0" step="0.01" class="w-full px-3 py-2 bg-slate-950 border border-steam-border rounded-lg text-white font-mono focus:outline-none focus:border-steam-accent">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-400 font-medium mb-1">Genre Tag</label>
+                    <input type="text" id="newGameGenre" value="Action Co-op" class="w-full px-3 py-2 bg-slate-950 border border-steam-border rounded-lg text-white focus:outline-none focus:border-steam-accent">
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2">
+                    <button onclick="addCustomGameModal(false)" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 font-semibold">Cancel</button>
+                    <button onclick="confirmAddCustomGame()" class="px-4 py-2 rounded-lg bg-steam-accent text-slate-950 font-bold">Add to Library</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application JavaScript -->
+    <script>
+        // Currency Exchange Rates relative to USD Base
+        const CURRENCY_CONFIG = {
+            CHF: { symbol: 'CHF ', rate: 0.88 },
+            EUR: { symbol: '€', rate: 0.92 },
+            USD: { symbol: '$', rate: 1.00 }
+        };
+
+        let currentCurrency = 'CHF';
+        let currentFilter = 'all';
+        let currentProfileKey = 'core';
+
+        // Rich Preset Profiles with real Steam AppIDs for authentic Steam CDN header images
+        const PRESET_PROFILES = {
+            core: {
+                name: 'CyberSwiss_99',
+                steamId: '76561198042819384',
+                level: 64,
+                createdYear: 2014,
+                badges: 48,
+                genre: 'Action RPG & Tactical Shooter',
+                avatar: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&w=200&q=80',
+                games: [
+                    { appid: 730, title: 'Counter-Strike 2', hours: 1420.5, retailUsd: 14.99, saleUsd: 0.00, genre: 'Tactical Shooter' },
+                    { appid: 1086940, title: "Baldur's Gate 3", hours: 312.4, retailUsd: 59.99, saleUsd: 47.99, genre: 'CRPG' },
+                    { appid: 1245620, title: 'ELDEN RING', hours: 268.0, retailUsd: 59.99, saleUsd: 35.99, genre: 'Action RPG' },
+                    { appid: 632360, title: 'Risk of Rain 2', hours: 412.2, retailUsd: 24.99, saleUsd: 8.24, genre: 'Roguelike' },
+                    { appid: 1091500, title: 'Cyberpunk 2077', hours: 184.5, retailUsd: 59.99, saleUsd: 29.99, genre: 'Open World RPG' },
+                    { appid: 553850, title: 'HELLDIVERS™ 2', hours: 156.8, retailUsd: 39.99, saleUsd: 31.99, genre: 'Co-op Shooter' },
+                    { appid: 292030, title: 'The Witcher 3: Wild Hunt', hours: 149.0, retailUsd: 39.99, saleUsd: 9.99, genre: 'Action RPG' },
+                    { appid: 413150, title: 'Stardew Valley', hours: 128.4, retailUsd: 14.99, saleUsd: 9.99, genre: 'Simulation' },
+                    { appid: 1172470, title: 'Apex Legends™', hours: 215.0, retailUsd: 0.00, saleUsd: 0.00, genre: 'Battle Royale' },
+                    { appid: 1145360, title: 'Hades', hours: 94.2, retailUsd: 24.99, saleUsd: 9.99, genre: 'Action Roguelike' },
+                    { appid: 427520, title: 'Factorio', hours: 118.6, retailUsd: 35.00, saleUsd: 35.00, genre: 'Automation' },
+                    { appid: 105600, title: 'Terraria', hours: 88.5, retailUsd: 9.99, saleUsd: 4.99, genre: 'Sandbox' },
+                    { appid: 892970, title: 'Valheim', hours: 76.3, retailUsd: 19.99, saleUsd: 9.99, genre: 'Survival' },
+                    { appid: 1174180, title: 'Red Dead Redemption 2', hours: 112.0, retailUsd: 59.99, saleUsd: 19.79, genre: 'Open World' },
+                    { appid: 548430, title: 'Deep Rock Galactic', hours: 64.0, retailUsd: 29.99, saleUsd: 9.89, genre: 'Co-op FPS' },
+                    { appid: 367520, title: 'Hollow Knight', hours: 52.4, retailUsd: 14.99, saleUsd: 7.49, genre: 'Metroidvania' },
+                    { appid: 2379780, title: 'Balatro', hours: 68.2, retailUsd: 14.99, saleUsd: 12.74, genre: 'Deckbuilder' },
+                    { appid: 1966720, title: 'Lethal Company', hours: 31.5, retailUsd: 9.99, saleUsd: 6.99, genre: 'Co-op Horror' },
+                    { appid: 646570, title: 'Slay the Spire', hours: 82.0, retailUsd: 24.99, saleUsd: 8.49, genre: 'Deckbuilder' },
+                    { appid: 275850, title: "No Man's Sky", hours: 44.1, retailUsd: 59.99, saleUsd: 23.99, genre: 'Space Survival' },
+                    { appid: 1593500, title: 'God of War', hours: 38.5, retailUsd: 49.99, saleUsd: 24.99, genre: 'Action Adventure' },
+                    { appid: 620, title: 'Portal 2', hours: 19.4, retailUsd: 9.99, saleUsd: 0.99, genre: 'Puzzle' },
+                    // Unplayed Pile of Shame (0 hours)
+                    { appid: 1716740, title: 'Starfield', hours: 0.0, retailUsd: 69.99, saleUsd: 41.99, genre: 'Space RPG' },
+                    { appid: 1888930, title: 'The Last of Us™ Part I', hours: 0.0, retailUsd: 59.99, saleUsd: 35.99, genre: 'Action Adventure' },
+                    { appid: 814380, title: 'Sekiro™: Shadows Die Twice', hours: 0.0, retailUsd: 59.99, saleUsd: 29.99, genre: 'Souls-like' },
+                    { appid: 632470, title: 'Disco Elysium - The Final Cut', hours: 0.0, retailUsd: 39.99, saleUsd: 9.99, genre: 'Narrative RPG' },
+                    { appid: 753640, title: 'Outer Wilds', hours: 0.0, retailUsd: 24.99, saleUsd: 14.99, genre: 'Exploration' },
+                    { appid: 504230, title: 'Celeste', hours: 0.0, retailUsd: 19.99, saleUsd: 4.99, genre: 'Platformer' }
+                ]
+            },
+            collector: {
+                name: 'ArchonCollector',
+                steamId: '76561197960287930',
+                level: 142,
+                createdYear: 2008,
+                badges: 195,
+                genre: 'Grand Strategy & RPG Hoarder',
+                avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+                games: [
+                    { appid: 281990, title: 'Stellaris', hours: 840.0, retailUsd: 39.99, saleUsd: 9.99, genre: 'Grand Strategy' },
+                    { appid: 1158310, title: 'Crusader Kings III', hours: 615.2, retailUsd: 49.99, saleUsd: 24.99, genre: 'Grand Strategy' },
+                    { appid: 294100, title: 'RimWorld', hours: 920.5, retailUsd: 34.99, saleUsd: 27.99, genre: 'Colony Sim' },
+                    { appid: 289070, title: 'Sid Meier’s Civilization VI', hours: 410.0, retailUsd: 59.99, saleUsd: 5.99, genre: 'Turn-Based Strategy' },
+                    { appid: 1086940, title: "Baldur's Gate 3", hours: 215.0, retailUsd: 59.99, saleUsd: 47.99, genre: 'CRPG' },
+                    { appid: 1363080, title: 'Manor Lords', hours: 0.0, retailUsd: 39.99, saleUsd: 29.99, genre: 'City Builder' },
+                    { appid: 2050650, title: 'Resident Evil 4', hours: 0.0, retailUsd: 39.99, saleUsd: 19.99, genre: 'Survival Horror' },
+                    { appid: 223850, title: '3DMark', hours: 14.2, retailUsd: 34.99, saleUsd: 8.74, genre: 'Benchmark' },
+                    { appid: 1245620, title: 'ELDEN RING', hours: 0.0, retailUsd: 59.99, saleUsd: 35.99, genre: 'Action RPG' },
+                    { appid: 1091500, title: 'Cyberpunk 2077', hours: 0.0, retailUsd: 59.99, saleUsd: 29.99, genre: 'Open World RPG' },
+                    { appid: 1174180, title: 'Red Dead Redemption 2', hours: 0.0, retailUsd: 59.99, saleUsd: 19.79, genre: 'Open World' },
+                    { appid: 1623730, title: 'Palworld', hours: 0.0, retailUsd: 29.99, saleUsd: 22.49, genre: 'Survival' },
+                    { appid: 1817070, title: 'Marvel’s Spider-Man Remastered', hours: 0.0, retailUsd: 59.99, saleUsd: 35.99, genre: 'Action' }
+                ]
+            },
+            competitive: {
+                name: 'FlickShot_CH',
+                steamId: '76561198119283741',
+                level: 32,
+                createdYear: 2017,
+                badges: 19,
+                genre: 'Competitive FPS & Esports',
+                avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=200&q=80',
+                games: [
+                    { appid: 730, title: 'Counter-Strike 2', hours: 3890.0, retailUsd: 14.99, saleUsd: 0.00, genre: 'Tactical Shooter' },
+                    { appid: 570, title: 'Dota 2', hours: 1940.5, retailUsd: 0.00, saleUsd: 0.00, genre: 'MOBA' },
+                    { appid: 252490, title: 'Rust', hours: 1120.0, retailUsd: 39.99, saleUsd: 19.99, genre: 'Survival PvP' },
+                    { appid: 359550, title: "Tom Clancy's Rainbow Six Siege", hours: 685.4, retailUsd: 19.99, saleUsd: 7.99, genre: 'Tactical FPS' },
+                    { appid: 578080, title: 'PUBG: BATTLEGROUNDS', hours: 420.0, retailUsd: 29.99, saleUsd: 0.00, genre: 'Battle Royale' },
+                    { appid: 632360, title: 'Risk of Rain 2', hours: 190.2, retailUsd: 24.99, saleUsd: 8.24, genre: 'Roguelike' },
+                    { appid: 824270, title: 'KovaaK’s', hours: 245.0, retailUsd: 9.99, saleUsd: 4.99, genre: 'Aim Trainer' },
+                    { appid: 1938090, title: 'Call of Duty®', hours: 130.5, retailUsd: 69.99, saleUsd: 45.49, genre: 'FPS' }
+                ]
+            }
+        };
+
+        // Deep copy active profile state
+        let activeProfile = JSON.parse(JSON.stringify(PRESET_PROFILES.core));
+
+        // Format currency helper
+        function formatMoney(usdAmount) {
+            const cfg = CURRENCY_CONFIG[currentCurrency];
+            const converted = usdAmount * cfg.rate;
+            return `${cfg.symbol}${converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        // Toast Helper
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const colors = {
+                info: 'border-steam-accent bg-slate-900/95 text-white',
+                success: 'border-emerald-400 bg-slate-900/95 text-emerald-300',
+                warning: 'border-amber-400 bg-slate-900/95 text-amber-300'
+            };
+            toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl border ${colors[type] || colors.info} shadow-xl text-xs font-medium transition-all duration-300`;
+            toast.innerHTML = `<i class="ph-fill ph-sparkle text-base text-steam-accent"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3600);
+        }
+
+        // Switch Currency
+        function setCurrency(curr) {
+            currentCurrency = curr;
+            ['CHF', 'EUR', 'USD'].forEach(c => {
+                const btn = document.getElementById(`curr-${c}`);
+                if (c === curr) {
+                    btn.className = 'px-2.5 py-1 rounded-md transition-all font-semibold bg-steam-blue text-slate-950';
+                } else {
+                    btn.className = 'px-2.5 py-1 rounded-md transition-all text-slate-400 hover:text-white';
+                }
+            });
+            updateDashboard();
+        }
+
+        // Switch Preset Profile
+        function loadPresetProfile(key) {
+            currentProfileKey = key;
+            activeProfile = JSON.parse(JSON.stringify(PRESET_PROFILES[key]));
+            document.getElementById('steamIdInput').value = activeProfile.steamId;
+
+            ['core', 'collector', 'competitive'].forEach(k => {
+                const btn = document.getElementById(`preset-${k}`);
+                if (k === key) {
+                    btn.className = 'text-xs px-2.5 py-1.5 rounded-lg bg-steam-blue/20 border border-steam-accent/50 text-steam-accent font-medium transition';
+                } else {
+                    btn.className = 'text-xs px-2.5 py-1.5 rounded-lg bg-slate-900/70 hover:bg-slate-800 border border-steam-border text-slate-300 transition';
+                }
+            });
+
+            updateDashboard();
+            showToast(`Loaded "${activeProfile.name}" profile (${activeProfile.games.length} games)`, 'info');
+        }
+
+        // Calculate & Render All Dashboard Metrics
+        function updateDashboard() {
+            const games = activeProfile.games;
+            const currentYear = new Date().getFullYear();
+            const accountAgeYears = Math.max(1, currentYear - activeProfile.createdYear);
+
+            // Update Profile Header
+            document.getElementById('profileAvatar').src = activeProfile.avatar;
+            document.getElementById('profileName').textContent = activeProfile.name;
+            document.getElementById('profileLevel').textContent = `LVL ${activeProfile.level}`;
+            document.getElementById('profileSteamId').textContent = activeProfile.steamId;
+            document.getElementById('profileYear').textContent = `${activeProfile.createdYear} (${accountAgeYears} Years)`;
+            document.getElementById('profileBadges').textContent = activeProfile.badges;
+            document.getElementById('profileGenre').textContent = activeProfile.genre;
+
+            // Aggregate Totals
+            let totalRetailUsd = 0;
+            let totalSaleUsd = 0;
+            let totalHours = 0;
+            let playedCount = 0;
+            let unplayedWorthUsd = 0;
+
+            let bestValueGame = null;
+            let lowestCostPerHour = Infinity;
+
+            games.forEach(g => {
+                totalRetailUsd += g.retailUsd;
+                totalSaleUsd += g.saleUsd;
+                totalHours += g.hours;
+
+                if (g.hours > 0) {
+                    playedCount++;
+                    if (g.retailUsd > 0) {
+                        const cph = g.retailUsd / g.hours;
+                        if (cph < lowestCostPerHour) {
+                            lowestCostPerHour = cph;
+                            bestValueGame = g;
+                        }
+                    }
+                } else {
+                    unplayedWorthUsd += g.retailUsd;
+                }
+            });
+
+            const totalGamesCount = games.length;
+            const unplayedCount = totalGamesCount - playedCount;
+            const completionPct = totalGamesCount > 0 ? ((playedCount / totalGamesCount) * 100) : 0;
+            const overallCostPerHourUsd = totalHours > 0 ? (totalRetailUsd / totalHours) : 0;
+            const avgGamePriceUsd = totalGamesCount > 0 ? (totalRetailUsd / totalGamesCount) : 0;
+            const totalDays = (totalHours / 24).toFixed(1);
+
+            // Populate KPI Cards
+            document.getElementById('kpiRetailWorth').textContent = formatMoney(totalRetailUsd);
+            document.getElementById('kpiSaleWorth').textContent = formatMoney(totalSaleUsd);
+            document.getElementById('kpiTotalHours').textContent = `${Math.round(totalHours).toLocaleString()} hrs`;
+            document.getElementById('kpiTotalDays').textContent = `${totalDays} Full Days`;
+            document.getElementById('kpiCostPerHour').textContent = formatMoney(overallCostPerHourUsd);
+            document.getElementById('kpiAvgGamePrice').textContent = formatMoney(avgGamePriceUsd);
+            document.getElementById('kpiCompletionPct').textContent = `${completionPct.toFixed(1)}%`;
+            document.getElementById('kpiPlayedCount').textContent = `${playedCount} / ${totalGamesCount} Played`;
+            document.getElementById('kpiCompletionBar').style.width = `${completionPct}%`;
+
+            // Populate Pile of Shame & Insights
+            document.getElementById('shameWorthValue').textContent = formatMoney(unplayedWorthUsd);
+            document.getElementById('shameCountText').textContent = `${unplayedCount} game${unplayedCount === 1 ? '' : 's'} bought with 0.0 hours played.`;
+
+            if (bestValueGame) {
+                document.getElementById('bestValueGameTitle').textContent = bestValueGame.title;
+                document.getElementById('bestValueGameStats').textContent = `${bestValueGame.hours.toFixed(1)} hrs • ${formatMoney(lowestCostPerHour)} / hour`;
+            }
+
+            const dailyAvg = totalHours / (accountAgeYears * 365);
+            document.getElementById('dailyAverageHours').textContent = `${dailyAvg.toFixed(2)} Hours / Day`;
+
+            // Render Top 5 Most Played Bars
+            renderTop5Bars(games, totalHours);
+
+            // Render Library Table
+            renderLibraryTable();
+        }
+
+        // Render Top 5 Playtime Distribution Bars
+        function renderTop5Bars(games, totalHours) {
+            const container = document.getElementById('topGamesBarsContainer');
+            const sortedByHours = [...games].sort((a, b) => b.hours - a.hours).slice(0, 5);
+            const top5Sum = sortedByHours.reduce((acc, g) => acc + g.hours, 0);
+            const top5Share = totalHours > 0 ? Math.round((top5Sum / totalHours) * 100) : 0;
+
+            document.getElementById('top5ShareBadge').textContent = `Top 5 = ${top5Share}% of all playtime`;
+
+            const maxHours = sortedByHours[0]?.hours || 1;
+
+            container.innerHTML = sortedByHours.map((g, idx) => {
+                const widthPct = Math.max(4, (g.hours / maxHours) * 100);
+                const shareOfTotal = totalHours > 0 ? ((g.hours / totalHours) * 100).toFixed(1) : 0;
+                const steamHeaderImg = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${g.appid}/header.jpg`;
+
+                return `
+                    <div class="p-3 rounded-xl bg-slate-900/75 border border-steam-border/70 hover:border-steam-accent/40 transition">
+                        <div class="flex items-center justify-between gap-3 mb-2">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <span class="text-xs font-mono font-bold text-steam-accent w-5">#${idx + 1}</span>
+                                <img src="${steamHeaderImg}" onerror="this.src='https://placehold.co/120x56/1b2838/66c0f4?text=STEAM'" alt="${g.title}" class="w-14 h-7 rounded object-cover border border-steam-border shrink-0">
+                                <div class="truncate">
+                                    <div class="text-xs sm:text-sm font-bold text-white truncate">${g.title}</div>
+                                    <div class="text-[11px] text-slate-400">${g.genre}</div>
+                                </div>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <div class="text-xs sm:text-sm font-mono font-bold text-white">${g.hours.toLocaleString()} hrs</div>
+                                <div class="text-[11px] font-mono text-steam-accent">${shareOfTotal}% of total</div>
+                            </div>
+                        </div>
+                        <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                            <div class="bg-gradient-to-r from-steam-blue to-cyan-400 h-full rounded-full" style="width: ${widthPct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Filter Tab Switcher
+        function setLibraryFilter(filter) {
+            currentFilter = filter;
+            ['all', 'binge', 'shame', 'paid'].forEach(f => {
+                const tab = document.getElementById(`tab-${f}`);
+                if (f === filter) {
+                    tab.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-steam-blue text-slate-950 transition';
+                } else {
+                    tab.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition';
+                }
+            });
+            renderLibraryTable();
+        }
+
+        // Render Searchable & Sortable Game Library Table
+        function renderLibraryTable() {
+            const tbody = document.getElementById('libraryTableBody');
+            const query = (document.getElementById('gameSearchInput').value || '').toLowerCase().trim();
+            const sortMode = document.getElementById('gameSortSelect').value;
+
+            let filtered = activeProfile.games.filter(g => {
+                if (currentFilter === 'binge' && g.hours < 100) return false;
+                if (currentFilter === 'shame' && g.hours > 0) return false;
+                if (currentFilter === 'paid' && g.retailUsd <= 0) return false;
+                if (query && !g.title.toLowerCase().includes(query) && !g.genre.toLowerCase().includes(query)) return false;
+                return true;
+            });
+
+            // Sort logic
+            filtered.sort((a, b) => {
+                if (sortMode === 'hours-desc') return b.hours - a.hours;
+                if (sortMode === 'hours-asc') return a.hours - b.hours;
+                if (sortMode === 'price-desc') return b.retailUsd - a.retailUsd;
+                if (sortMode === 'price-asc') return a.retailUsd - b.retailUsd;
+                if (sortMode === 'name-asc') return a.title.localeCompare(b.title);
+                if (sortMode === 'cph-asc') {
+                    const cphA = a.hours > 0 ? (a.retailUsd / a.hours) : 999999;
+                    const cphB = b.hours > 0 ? (b.retailUsd / b.hours) : 999999;
+                    return cphA - cphB;
+                }
+                return 0;
+            });
+
+            const maxHoursInLib = Math.max(...activeProfile.games.map(g => g.hours), 1);
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="py-10 text-center text-slate-400 text-sm">
+                            No games match your current filter. Try clearing the search box!
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(g => {
+                const steamHeaderImg = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${g.appid}/header.jpg`;
+                const barPct = Math.min(100, Math.max(2, (g.hours / maxHoursInLib) * 100));
+
+                // Cost per hour calculation
+                let cphDisplay = '';
+                let cphColor = 'text-slate-300';
+                if (g.retailUsd === 0) {
+                    cphDisplay = 'FREE';
+                    cphColor = 'text-emerald-400 font-bold';
+                } else if (g.hours === 0) {
+                    cphDisplay = '∞ (Unplayed)';
+                    cphColor = 'text-rose-400';
+                } else {
+                    const cphUsd = g.retailUsd / g.hours;
+                    cphDisplay = `${formatMoney(cphUsd)}/h`;
+                    if (cphUsd < 0.5) cphColor = 'text-emerald-400 font-bold';
+                    else if (cphUsd < 2.0) cphColor = 'text-cyan-300';
+                    else cphColor = 'text-amber-300';
+                }
+
+                // Status Badge
+                let badgeHtml = '';
+                if (g.hours >= 100) {
+                    badgeHtml = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-steam-blue/20 text-steam-accent border border-steam-accent/40">🔥 Binge Played</span>`;
+                } else if (g.hours > 0) {
+                    badgeHtml = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">✓ Played</span>`;
+                } else {
+                    badgeHtml = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30">🕸️ Unplayed</span>`;
+                }
+
+                return `
+                    <tr class="hover:bg-steam-cardHover/60 transition group">
+                        <td class="py-3.5 px-4">
+                            <div class="flex items-center gap-3">
+                                <img src="${steamHeaderImg}" onerror="this.src='https://placehold.co/120x56/1b2838/66c0f4?text=STEAM'" alt="${g.title}" class="w-16 h-8 rounded object-cover border border-steam-border shrink-0">
+                                <div>
+                                    <div class="font-bold text-white group-hover:text-steam-accent transition">${g.title}</div>
+                                    <div class="text-[11px] text-slate-400">${g.genre} • AppID: <span class="font-mono">${g.appid}</span></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <div class="font-mono font-bold text-white">${g.hours.toFixed(1)} h</div>
+                            <div class="w-24 bg-slate-950 h-1.5 rounded-full overflow-hidden mt-1">
+                                <div class="bg-steam-accent h-full rounded-full" style="width: ${g.hours > 0 ? barPct : 0}%"></div>
+                            </div>
+                        </td>
+                        <td class="py-3.5 px-4 font-mono text-slate-200">
+                            ${g.retailUsd === 0 ? '<span class="text-emerald-400">Free to Play</span>' : formatMoney(g.retailUsd)}
+                        </td>
+                        <td class="py-3.5 px-4 font-mono text-emerald-400 hidden md:table-cell">
+                            ${g.saleUsd === 0 ? 'Free' : formatMoney(g.saleUsd)}
+                        </td>
+                        <td class="py-3.5 px-4 font-mono ${cphColor}">
+                            ${cphDisplay}
+                        </td>
+                        <td class="py-3.5 px-4 text-right">
+                            ${badgeHtml}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Fetch Live Game Prices via Public CheapShark API (CORS-Enabled out of the box!)
+        async function fetchLiveCheapSharkPrices() {
+            const btn = document.getElementById('livePriceBtn');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i><span>Syncing CheapShark API...</span>`;
+            btn.disabled = true;
+
+            let updatedCount = 0;
+            try {
+                // Sync a batch of top titles in the library with live CheapShark deals
+                const gamesToSync = activeProfile.games.slice(0, 6);
+                for (const game of gamesToSync) {
+                    if (game.retailUsd === 0) continue;
+                    const res = await fetch(`https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(game.title)}&limit=1`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.length > 0 && data[0].cheapest) {
+                            game.saleUsd = parseFloat(data[0].cheapest);
+                            updatedCount++;
+                        }
+                    }
+                }
+                updateDashboard();
+                showToast(`Synced live store deals for ${updatedCount} games via CheapShark API!`, 'success');
+            } catch (err) {
+                showToast(`Live pricing fallback active. Could not reach CheapShark.`, 'warning');
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        }
+
+        // Handle SteamID64 Search / Live Serverless Fetch or Smart Simulation
+        async function handleAnalyzeAccount() {
+            const inputVal = document.getElementById('steamIdInput').value.trim();
+            if (!inputVal) {
+                showToast('Please enter a SteamID64 or Custom Vanity name.', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('analyzeBtn');
+            const orig = btn.innerHTML;
+            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i><span>Analyzing...</span>`;
+
+            const endpoint = document.getElementById('serverlessEndpointInput').value.trim();
+
+            // Attempt live serverless endpoint first if deployed on Netlify/Vercel
+            try {
+                const res = await fetch(`${endpoint}?steamid=${encodeURIComponent(inputVal)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.player && Array.isArray(data.games)) {
+                        activeProfile.name = data.player.personaname || inputVal;
+                        activeProfile.steamId = data.player.steamid || inputVal;
+                        activeProfile.avatar = data.player.avatarfull || activeProfile.avatar;
+                        if (data.player.timecreated) {
+                            activeProfile.createdYear = new Date(data.player.timecreated * 1000).getFullYear();
+                        }
+                        activeProfile.games = data.games.map(g => ({
+                            appid: g.appid,
+                            title: g.name || `App ${g.appid}`,
+                            hours: +((g.playtime_forever || 0) / 60).toFixed(1),
+                            retailUsd: 29.99,
+                            saleUsd: 14.99,
+                            genre: 'Steam Library'
+                        }));
+                        document.getElementById('connectionModeBadge').textContent = 'Mode: Live Serverless API Connected';
+                        document.getElementById('connectionModeBadge').className = 'px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+                        updateDashboard();
+                        showToast(`Loaded live Steam profile for ${activeProfile.name}!`, 'success');
+                        btn.innerHTML = orig;
+                        return;
+                    }
+                }
+            } catch (e) {
+                // Serverless function not deployed yet; gracefully fall back to deterministic profile generator
+            }
+
+            // Deterministic Custom Profile Simulation when testing locally before Netlify deployment
+            setTimeout(() => {
+                activeProfile.steamId = inputVal;
+                activeProfile.name = inputVal.length === 17 && !isNaN(inputVal) ? `SteamUser_${inputVal.slice(-4)}` : inputVal;
+                updateDashboard();
+                showToast(`Calculated statistics for ${activeProfile.name}. Deploy the Netlify function for live Steam API sync!`, 'info');
+                btn.innerHTML = orig;
+            }, 450);
+        }
+
+        // Toggle API Drawer
+        function toggleApiDrawer() {
+            const drawer = document.getElementById('apiSettingsDrawer');
+            const chevron = document.getElementById('apiDrawerChevron');
+            drawer.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        function saveApiSettings() {
+            showToast('API Settings saved! Click "Calculate Worth" to test your endpoint.', 'success');
+        }
+
+        // Toggle Modals
+        function toggleDeployModal(show) {
+            const modal = document.getElementById('deployModal');
+            modal.classList.toggle('hidden', !show);
+        }
+
+        function addCustomGameModal(show) {
+            const modal = document.getElementById('addGameModal');
+            modal.classList.toggle('hidden', !show);
+        }
+
+        // Lookup single game price via CheapShark inside the Add Game Modal
+        async function lookupSingleGamePrice() {
+            const title = document.getElementById('newGameTitle').value.trim();
+            if (!title) {
+                showToast('Enter a game title first to lookup its live price.', 'warning');
+                return;
+            }
+            const btn = document.getElementById('lookupPriceBtn');
+            btn.textContent = 'Searching...';
+            try {
+                const res = await fetch(`https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(title)}&limit=1`);
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    const match = data[0];
+                    document.getElementById('newGameTitle').value = match.external || title;
+                    document.getElementById('newGamePrice').value = parseFloat(match.cheapest || 29.99).toFixed(2);
+                    showToast(`Found "${match.external}" at $${match.cheapest} via CheapShark!`, 'success');
+                } else {
+                    showToast('No exact match found on CheapShark; enter price manually.', 'warning');
+                }
+            } catch (e) {
+                showToast('Could not contact CheapShark API.', 'warning');
+            } finally {
+                btn.textContent = 'Lookup Price';
+            }
+        }
+
+        // Confirm adding a game to current library
+        function confirmAddCustomGame() {
+            const title = document.getElementById('newGameTitle').value.trim() || 'Custom Steam Game';
+            const hours = parseFloat(document.getElementById('newGameHours').value) || 0;
+            const price = parseFloat(document.getElementById('newGamePrice').value) || 0;
+            const genre = document.getElementById('newGameGenre').value.trim() || 'Action';
+
+            activeProfile.games.unshift({
+                appid: 730,
+                title,
+                hours,
+                retailUsd: price,
+                saleUsd: +(price * 0.65).toFixed(2),
+                genre
+            });
+
+            addCustomGameModal(false);
+            updateDashboard();
+            showToast(`Added "${title}" (${hours} hrs) to your library calculation!`, 'success');
+        }
+
+        // Clipboard Helper (iFrame compatible)
+        function copyTextToClipboard(text, successMsg) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast(successMsg, 'success');
+            } catch (err) {
+                showToast('Failed to copy to clipboard.', 'warning');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function copyServerlessCode() {
+            const code = document.getElementById('serverlessCodeBlock').innerText;
+            copyTextToClipboard(code, 'Copied Netlify/Vercel Serverless Function code to clipboard!');
+        }
+
+        function copyShareSummary() {
+            const worth = document.getElementById('kpiRetailWorth').textContent;
+            const hours = document.getElementById('kpiTotalHours').textContent;
+            const cph = document.getElementById('kpiCostPerHour').textContent;
+            const completion = document.getElementById('kpiCompletionPct').textContent;
+            const text = `🎮 My SteamPulse Summary (${activeProfile.name}):\n• Total Account Worth: ${worth}\n• Combined Playtime: ${hours}\n• Entertainment Efficiency: ${cph}/hr\n• Library Played: ${completion}`;
+            copyTextToClipboard(text, 'Copied your SteamPulse stats summary to clipboard!');
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            updateDashboard();
+        };
+    </script>
+</body>
+</html>
