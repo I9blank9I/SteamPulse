@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SteamPulse — Steam Account Worth, Playtime & AccVersusAcc</title>
+    <title>SteamPulse - Steam Account Worth, Playtime & AccVersusAcc</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter & JetBrains Mono -->
@@ -12,6 +12,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- MQTT.js for Real-Time Cross-Device Live Co-op Room Sync -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -91,7 +93,10 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="font-extrabold text-lg tracking-tight text-white">Steam<span class="text-steam-accent">Pulse</span></span>
-                            <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded-full bg-steam-blue/15 text-steam-accent border border-steam-accent/30 font-semibold">v3.0</span>
+                            <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded-full bg-steam-blue/15 text-steam-accent border border-steam-accent/30 font-semibold">v3.5</span>
+                        </div>
+                    </div>
+                </div>
                 <!-- Main Mode Switcher (Single Profile vs AccVersusAcc vs Co-op Casino Roulette) -->
                 <div class="flex items-center bg-slate-950/90 border border-steam-border rounded-xl p-1 text-xs font-bold overflow-x-auto">
                     <button onclick="switchAppMode('single')" id="mode-single-btn" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-steam-blue text-slate-950 shadow shrink-0">
@@ -104,32 +109,19 @@
                     </button>
                     <button onclick="switchAppMode('roulette')" id="mode-roulette-btn" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-white shrink-0 relative">
                         <i class="ph-bold ph-casino-chip text-emerald-400"></i>
-                        <span>Co-op Casino Roulette</span>
-                        <span class="px-1.5 py-0.2 rounded text-[9px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">NEW</span>
+                        <span>Co-op Roulette</span>
+                        <span class="px-1.5 py-0.2 rounded text-[9px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">LIVE</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Right Controls -->
+            <!-- Right Controls (Clean Currency Selector Only) -->
             <div class="flex items-center gap-2 sm:gap-3">
-                <!-- Currency Selector -->
                 <div class="relative flex items-center bg-slate-900/90 border border-steam-border rounded-lg p-1 text-xs font-mono">
                     <button onclick="setCurrency('CHF')" id="curr-CHF" class="px-2.5 py-1 rounded-md transition-all font-semibold bg-steam-blue text-slate-950">CHF</button>
                     <button onclick="setCurrency('EUR')" id="curr-EUR" class="px-2.5 py-1 rounded-md transition-all text-slate-400 hover:text-white">EUR</button>
                     <button onclick="setCurrency('USD')" id="curr-USD" class="px-2.5 py-1 rounded-md transition-all text-slate-400 hover:text-white">USD</button>
                 </div>
-
-                <!-- Live Price Sync Button -->
-                <button onclick="fetchLiveCheapSharkPrices()" id="livePriceBtn" title="Fetch real-time discounts via public CheapShark API" class="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-800 text-xs font-medium text-emerald-400 border border-emerald-500/30 transition">
-                    <i class="ph-bold ph-tag"></i>
-                    <span>Sync Store Prices</span>
-                </button>
-
-                <!-- GitHub + Netlify/Vercel Guide Modal Trigger -->
-                <button onclick="toggleDeployModal(true)" class="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-gradient-to-r from-steam-blue to-cyan-500 hover:from-cyan-400 hover:to-steam-blue text-slate-950 font-semibold text-xs sm:text-sm shadow-md shadow-steam-blue/20 transition">
-                    <i class="ph-bold ph-github-logo text-base"></i>
-                    <span class="hidden sm:inline">GitHub & Serverless Code</span>
-                </button>
             </div>
         </div>
     </header>
@@ -142,87 +134,24 @@
         <!-- =============================================================== -->
         <div id="singleModeContainer" class="space-y-6">
 
-            <!-- Search, Presets & API Config Panel -->
-            <section class="glass-panel rounded-2xl p-4 sm:p-6 shadow-xl">
-                <div class="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
-                    
-                    <!-- Steam ID Search Input -->
-                    <div class="flex-1 flex flex-col sm:flex-row gap-2.5">
-                        <div class="relative flex-1">
-                            <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
-                            <input 
-                                type="text" 
-                                id="steamIdInput" 
-                                value="76561198042819384"
-                                placeholder="Enter SteamID64 (76561198...) or Custom Vanity Username..." 
-                                class="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-steam-border rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-steam-accent focus:ring-1 focus:ring-steam-accent font-mono"
-                            >
-                        </div>
-                        <button onclick="handleAnalyzeAccount()" id="analyzeBtn" class="px-5 py-2.5 rounded-xl bg-steam-accent hover:bg-cyan-300 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 transition shrink-0 shadow-lg shadow-steam-accent/15">
-                            <i class="ph-bold ph-lightning"></i>
-                            <span>Calculate Worth</span>
-                        </button>
+            <!-- Clean Search Panel -->
+            <section class="glass-panel rounded-2xl p-4 sm:p-5 shadow-xl">
+                <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                    <div class="relative flex-1">
+                        <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                        <input 
+                            type="text" 
+                            id="steamIdInput" 
+                            value="76561198042819384"
+                            onkeydown="if(event.key==='Enter') handleAnalyzeAccount()"
+                            placeholder="Enter SteamID64 (76561198...), Custom Vanity Name, or full Steam Profile URL..." 
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-steam-border rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-steam-accent focus:ring-1 focus:ring-steam-accent font-mono"
+                        >
                     </div>
-
-                    <!-- Quick Demo Profile Switcher + API Drawer Button -->
-                    <div class="flex flex-wrap items-center justify-between sm:justify-end gap-2 border-t lg:border-t-0 pt-3 lg:pt-0 border-steam-border/60">
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="text-xs text-slate-400 mr-1 font-medium">Presets:</span>
-                            <button onclick="loadPresetProfile('core')" id="preset-core" class="text-xs px-2.5 py-1.5 rounded-lg bg-steam-blue/20 border border-steam-accent/50 text-steam-accent font-medium transition">
-                                Core Gamer (LVL 67)
-                            </button>
-                            <button onclick="loadPresetProfile('collector')" id="preset-collector" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-900/70 hover:bg-slate-800 border border-steam-border text-slate-300 transition">
-                                Whale Collector
-                            </button>
-                            <button onclick="loadPresetProfile('competitive')" id="preset-competitive" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-900/70 hover:bg-slate-800 border border-steam-border text-slate-300 transition">
-                                Esports Grinder
-                            </button>
-                        </div>
-
-                        <button onclick="toggleApiDrawer()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-steam-border flex items-center gap-1.5 transition">
-                            <i class="ph-bold ph-gear text-steam-accent"></i>
-                            <span>API Endpoint</span>
-                            <i id="apiDrawerChevron" class="ph ph-caret-down transition-transform"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Collapsible Steam Web API Configuration Drawer -->
-                <div id="apiSettingsDrawer" class="hidden mt-4 pt-4 border-t border-steam-border/80">
-                    <div class="bg-slate-950/70 border border-steam-border rounded-xl p-4">
-                        <div class="flex flex-col md:flex-row justify-between gap-4 mb-4">
-                            <div>
-                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                    <i class="ph-fill ph-key text-steam-accent"></i>
-                                    Live Steam Web API Connection
-                                </h3>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">
-                                    Queries <code class="text-steam-accent">/.netlify/functions/steam?steamId=...</code> for profile summary, owned games, vanity URL resolution, and accurate Steam Level (<code class="text-steam-accent">IPlayerService/GetSteamLevel/v1/</code>).
-                                </p>
-                            </div>
-                            <div class="flex items-center gap-2 shrink-0">
-                                <span id="connectionModeBadge" class="px-2.5 py-1 rounded-full text-xs font-mono bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                                    Mode: Hybrid Sandbox / Serverless Ready
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-medium text-slate-400 mb-1">Serverless Endpoint URL (Netlify / Vercel)</label>
-                                <input type="text" id="serverlessEndpointInput" value="/.netlify/functions/steam" placeholder="/.netlify/functions/steam" class="w-full px-3 py-2 bg-slate-900 border border-steam-border rounded-lg text-xs text-white font-mono focus:outline-none focus:border-steam-accent">
-                            </div>
-                            <div class="flex items-end gap-2">
-                                <button onclick="saveApiSettings()" class="w-full py-2 px-4 bg-steam-blue hover:bg-cyan-400 text-slate-950 font-semibold rounded-lg text-xs transition flex items-center justify-center gap-1.5">
-                                    <i class="ph-bold ph-check-circle"></i>
-                                    Save Endpoint
-                                </button>
-                                <button onclick="addCustomGameModal(true)" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-lg text-xs transition shrink-0 border border-steam-border">
-                                    + Add Game
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <button onclick="handleAnalyzeAccount()" id="analyzeBtn" class="px-6 py-2.5 rounded-xl bg-steam-accent hover:bg-cyan-300 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 transition shrink-0 shadow-lg shadow-steam-accent/15">
+                        <i class="ph-bold ph-lightning"></i>
+                        <span>Load Steam Account</span>
+                    </button>
                 </div>
             </section>
 
@@ -445,7 +374,7 @@
                             <i class="ph-fill ph-game-controller text-steam-accent"></i>
                             Complete Game Library Breakdown
                         </h2>
-                        <p class="text-xs text-slate-400 mt-0.5">Search, sort, and inspect playtime, retail value, and cost per hour</p>
+                        <p class="text-xs text-slate-400 mt-0.5">Search, sort, and inspect playtime, accurate Steam store retail price (click any price to edit), and cost per hour</p>
                     </div>
 
                     <!-- Filter Tabs -->
@@ -523,21 +452,14 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">1v1 ARENA</span>
-                            <h2 class="text-lg sm:text-xl font-extrabold text-white">AccVersusAcc — Head-to-Head Showdown</h2>
+                            <h2 class="text-lg sm:text-xl font-extrabold text-white">AccVersusAcc - Head-to-Head Showdown</h2>
                         </div>
                         <p class="text-xs text-slate-400 mt-1">Enter two SteamID64s or custom vanity usernames to compare account value, playtime, levels, and shared games</p>
                     </div>
 
-                    <!-- Quick Matchup Presets -->
                     <div class="flex flex-wrap items-center gap-2">
                         <button onclick="useCurrentProfileAsPlayer1()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-steam-accent border border-steam-border transition">
                             Use My Loaded Profile as P1
-                        </button>
-                        <button onclick="loadVersusPreset('core', 'collector')" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 border border-steam-border transition">
-                            Demo: Core vs Whale
-                        </button>
-                        <button onclick="loadVersusPreset('core', 'competitive')" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 border border-steam-border transition">
-                            Demo: Core vs Esports
                         </button>
                     </div>
                 </div>
@@ -676,33 +598,47 @@
         </div>
 
         <!-- =============================================================== -->
-        <!-- VIEW 3: CO-OP CASINO ROULETTE & BLIND READY-CHECK               -->
+        <!-- VIEW 3: CO-OP CASINO ROULETTE & LIVE MULTIPLAYER ROOM           -->
         <!-- =============================================================== -->
         <div id="rouletteModeContainer" class="hidden space-y-6">
 
-            <!-- Top Casino Header & Sub-Mode / Room Sync Bar -->
+            <!-- 1. LIVE MULTIPLAYER ROOM BAR & ROLE SWITCHER -->
             <section class="glass-panel rounded-2xl p-5 sm:p-6 border border-emerald-500/30 shadow-xl relative overflow-hidden">
                 <div class="absolute -right-10 -top-10 w-60 h-60 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-steam-border">
                     <div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
-                                <i class="ph-fill ph-sparkle"></i> CO-OP DECIDER & CASE REEL
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <span id="liveRoomConnectionBadge" class="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5">
+                                <span id="liveRoomPulseDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                                <span id="liveRoomStatusText">LIVE ROOM READY</span>
                             </span>
-                            <h2 class="text-lg sm:text-xl font-extrabold text-white">Play-Next Casino Roulette & Blind Matcher</h2>
+                            <h2 class="text-lg sm:text-xl font-extrabold text-white">Co-op Casino Roulette & Blind % Matcher</h2>
                         </div>
                         <p class="text-xs text-slate-400 mt-1">
-                            Import your <strong class="text-slate-200">&lt; 2h Backlog</strong> or <strong class="text-slate-200">2-Player Shared Games</strong>. Both players secretly rate how much they want to play (0–100%). Lock in to reveal odds & spin the weighted CS2-style case reel!
+                            Load Player 1 (or both players to automatically filter for <strong class="text-emerald-300">Shared Owned Games</strong>). Pick games from your library, type your exact <strong class="text-white">0-100%</strong> hype score, lock in, and spin live together!
                         </p>
                     </div>
 
-                    <!-- Audio & Blind Mode Controls -->
+                    <!-- Role Selector + Blind Mode + Audio Controls -->
                     <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        <!-- Role Selector: I am Player 1 vs Player 2 -->
+                        <div class="flex items-center bg-slate-950 border border-steam-border rounded-xl p-1 text-xs font-bold">
+                            <button onclick="setRouletteRole(1)" id="roleP1Btn" class="px-2.5 py-1.5 rounded-lg bg-cyan-500 text-slate-950 transition flex items-center gap-1">
+                                <i class="ph-bold ph-user"></i>
+                                <span>I am P1</span>
+                            </button>
+                            <button onclick="setRouletteRole(2)" id="roleP2Btn" class="px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-white transition flex items-center gap-1">
+                                <i class="ph-bold ph-user"></i>
+                                <span>I am P2</span>
+                            </button>
+                        </div>
+
                         <button onclick="toggleRouletteBlindMode()" id="blindModeToggleBtn" class="px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition">
                             <i class="ph-bold ph-eye-slash" id="blindModeIcon"></i>
-                            <span id="blindModeLabel">Blind Mode: ON (Hidden Until Ready)</span>
+                            <span id="blindModeLabel">Blind Mode: ON</span>
                         </button>
+
                         <button onclick="toggleCasinoAudio()" id="casinoAudioBtn" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-steam-border text-xs font-bold flex items-center gap-1.5 transition">
                             <i class="ph-bold ph-speaker-high" id="casinoAudioIcon"></i>
                             <span id="casinoAudioLabel">SFX: ON</span>
@@ -710,38 +646,78 @@
                     </div>
                 </div>
 
-                <!-- Pool Quick-Import & Room Sync Controls -->
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-4 items-center">
-                    <!-- Quick Pool Generators -->
-                    <div class="lg:col-span-7 flex flex-wrap items-center gap-2">
-                        <span class="text-xs font-semibold text-slate-400 mr-1">Load Pool:</span>
-                        <button onclick="populateRouletteFromBacklog()" class="px-3 py-2 rounded-xl bg-steam-blue/20 hover:bg-steam-blue/30 text-steam-accent border border-steam-accent/40 text-xs font-bold flex items-center gap-1.5 transition">
-                            <i class="ph-bold ph-Drop"></i>
-                            <span>My &lt; 2h Backlog (<span id="backlogCountChip">6</span>)</span>
+                <!-- 2. PLAYER 1 & PLAYER 2 STEAM LIBRARY LOADER + LIVE ROOM LINK -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-5 items-end">
+                    <!-- Player 1 Steam ID Input -->
+                    <div class="lg:col-span-4">
+                        <label class="block text-[11px] font-mono uppercase text-cyan-400 font-bold mb-1">
+                            Player 1 Steam ID / Vanity (Required)
+                        </label>
+                        <div class="flex gap-2">
+                            <input 
+                                type="text" 
+                                id="rouletteP1SteamInput" 
+                                value="76561198042819384"
+                                placeholder="Player 1 SteamID64 or Vanity..." 
+                                class="w-full px-3 py-2 bg-slate-950 border border-cyan-500/40 rounded-xl text-xs text-white font-mono focus:outline-none focus:border-cyan-400"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Player 2 Steam ID Input (Optional - triggers Shared Games filter) -->
+                    <div class="lg:col-span-4">
+                        <label class="block text-[11px] font-mono uppercase text-purple-400 font-bold mb-1">
+                            Player 2 Steam ID / Vanity (Optional - Filters Shared Games)
+                        </label>
+                        <div class="flex gap-2">
+                            <input 
+                                type="text" 
+                                id="rouletteP2SteamInput" 
+                                value=""
+                                placeholder="Leave empty for Solo P1, or enter Friend's ID..." 
+                                class="w-full px-3 py-2 bg-slate-950 border border-purple-500/40 rounded-xl text-xs text-white font-mono focus:outline-none focus:border-purple-400"
+                            >
+                            <button onclick="clearPlayer2Roulette()" title="Clear Player 2 (Solo P1 Mode)" class="px-2.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-rose-400 border border-steam-border text-xs">
+                                <i class="ph-bold ph-x"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sync Libraries Button + Live Room Share -->
+                    <div class="lg:col-span-4 flex flex-wrap sm:flex-nowrap items-center gap-2">
+                        <button onclick="syncRouletteSteamLibraries()" id="syncRouletteLibsBtn" class="flex-1 px-4 py-2 rounded-xl bg-steam-accent hover:bg-cyan-300 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-lg transition">
+                            <i class="ph-bold ph-arrows-clockwise"></i>
+                            <span>Load Owned Games</span>
                         </button>
-                        <button onclick="populateRouletteFromShared()" class="px-3 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-xs font-bold flex items-center gap-1.5 transition">
-                            <i class="ph-bold ph-users-three"></i>
-                            <span>P1 + P2 Shared Games</span>
+                        <button onclick="copyLiveRouletteRoomLink()" class="px-3.5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center justify-center gap-1.5 transition shrink-0">
+                            <i class="ph-bold ph-share-network"></i>
+                            <span>Copy Live Room Link (<span id="rouletteRoomCodeDisplay" class="font-mono">SP-774</span>)</span>
                         </button>
-                        <button onclick="populateRouletteTopCoop()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-steam-border text-xs font-semibold flex items-center gap-1.5 transition">
-                            <i class="ph-bold ph-fire text-amber-400"></i>
-                            <span>Squad Co-op Hits</span>
+                    </div>
+                </div>
+
+                <!-- 3. OWNED / SHARED GAMES FILTER BAR & LIBRARY PICKER TRIGGER -->
+                <div class="mt-4 pt-4 border-t border-steam-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span id="rouletteOwnershipModeBadge" class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                            Showing: P1 Owned Library (28 Games)
+                        </span>
+                        <button onclick="loadOwnedIntoRoulette('backlog')" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-steam-accent border border-steam-border text-xs font-semibold flex items-center gap-1.5 transition">
+                            <i class="ph-bold ph-hourglass-low"></i>
+                            <span>Load &lt; 2h Backlog Only</span>
+                        </button>
+                        <button onclick="loadOwnedIntoRoulette('all')" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-steam-border text-xs font-semibold flex items-center gap-1.5 transition">
+                            <i class="ph-bold ph-stack"></i>
+                            <span>Load Top Owned / Shared</span>
+                        </button>
+                        <button onclick="toggleLibraryPickerModal(true)" class="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-extrabold flex items-center gap-1.5 transition">
+                            <i class="ph-bold ph-list-checks"></i>
+                            <span>Pick Specific Games from Library (<span id="pickerAvailableCount">28</span>)</span>
                         </button>
                     </div>
 
-                    <!-- Live 2-Player Room Sync / Share Link -->
-                    <div class="lg:col-span-5 flex flex-wrap sm:flex-nowrap items-center justify-end gap-2">
-                        <div class="flex items-center bg-slate-950 border border-steam-border rounded-xl px-3 py-1.5 text-xs font-mono text-slate-300 gap-2 w-full sm:w-auto justify-between">
-                            <span class="text-slate-400">Room:</span>
-                            <strong id="rouletteRoomCodeDisplay" class="text-emerald-400 tracking-wider">PULSE-774</strong>
-                            <button onclick="generateNewRouletteRoom()" title="New Room Code" class="text-slate-400 hover:text-white">
-                                <i class="ph-bold ph-arrows-clockwise"></i>
-                            </button>
-                        </div>
-                        <button onclick="shareRouletteRoomLink()" class="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center justify-center gap-1.5 transition shrink-0">
-                            <i class="ph-bold ph-link"></i>
-                            <span>Share Sync Link</span>
-                        </button>
+                    <div class="text-[11px] font-mono text-slate-400 flex items-center gap-2">
+                        <span>Connected Peers: <strong id="livePeerCount" class="text-emerald-400">1 (Waiting for friend)</strong></span>
                     </div>
                 </div>
             </section>
@@ -755,7 +731,7 @@
                             Weighted Casino Case Reel
                         </h3>
                         <p id="reelStatusSubtitle" class="text-xs text-slate-400">
-                            Lock in both players below to unlock the weighted probability reel — or click Quick Spin to roll immediately!
+                            Lock in both players below to reveal hidden percentages & spin - synced live across both screens!
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
@@ -767,7 +743,6 @@
 
                 <!-- The Reel Viewport -->
                 <div class="relative w-full h-40 sm:h-44 rounded-2xl bg-slate-950 border-2 border-steam-border overflow-hidden shadow-inner flex items-center">
-                    <!-- Left/Right Edge Vignette Gradients -->
                     <div class="absolute inset-y-0 left-0 w-16 sm:w-28 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent z-20 pointer-events-none"></div>
                     <div class="absolute inset-y-0 right-0 w-16 sm:w-28 bg-gradient-to-l from-slate-950 via-slate-950/80 to-transparent z-20 pointer-events-none"></div>
 
@@ -783,7 +758,7 @@
                     </div>
                 </div>
 
-                <!-- Winner Reveal Banner (Shown after spin completes) -->
+                <!-- Winner Reveal Banner -->
                 <div id="rouletteWinnerBanner" class="hidden mt-5 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-500/20 via-cyan-500/15 to-amber-500/20 border-2 border-emerald-400/60 shadow-2xl transition-all">
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                         <div class="flex items-center gap-4">
@@ -816,25 +791,25 @@
                     <div class="flex items-center gap-3">
                         <div class="flex items-center gap-2 text-xs">
                             <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span>
-                            <span class="text-slate-300 font-medium" id="p1StatusIndicator">P1: Editing Votes...</span>
+                            <span class="text-slate-300 font-medium" id="p1StatusIndicator">P1: Setting %...</span>
                         </div>
                         <span class="text-slate-600">•</span>
                         <div class="flex items-center gap-2 text-xs">
                             <span class="w-2.5 h-2.5 rounded-full bg-purple-400 inline-block"></span>
-                            <span class="text-slate-300 font-medium" id="p2StatusIndicator">P2: Editing Votes...</span>
+                            <span class="text-slate-300 font-medium" id="p2StatusIndicator">P2: Setting %...</span>
                         </div>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-2.5">
-                        <button onclick="resetRouletteReadyState()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-steam-border text-xs font-semibold flex items-center gap-1.5 transition">
+                        <button onclick="resetRouletteReadyState(true)" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-steam-border text-xs font-semibold flex items-center gap-1.5 transition">
                             <i class="ph-bold ph-arrow-counter-clockwise"></i>
                             <span>Unlock & Edit %</span>
                         </button>
-                        <button onclick="spinCasinoRoulette(true)" id="quickSpinBtn" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition">
+                        <button onclick="triggerLiveRouletteSpin(true)" id="quickSpinBtn" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition">
                             <i class="ph-bold ph-shuffle"></i>
                             <span>Force Spin Now</span>
                         </button>
-                        <button onclick="spinCasinoRoulette(false)" id="mainCasinoSpinBtn" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 via-cyan-400 to-steam-blue hover:from-emerald-300 hover:to-cyan-300 text-slate-950 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition">
+                        <button onclick="triggerLiveRouletteSpin(false)" id="mainCasinoSpinBtn" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 via-cyan-400 to-steam-blue hover:from-emerald-300 hover:to-cyan-300 text-slate-950 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition">
                             <i class="ph-fill ph-casino-chip text-lg"></i>
                             <span id="mainSpinBtnText">SPIN WEIGHTED ROULETTE</span>
                         </button>
@@ -851,18 +826,18 @@
                     <div class="lg:col-span-4 p-3.5 rounded-xl bg-cyan-500/5 border border-cyan-500/30 flex items-center justify-between gap-3">
                         <div class="min-w-0">
                             <div class="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-bold">Player 1 Voter</div>
-                            <input type="text" id="rouletteP1NameInput" value="CyberSwiss_99" oninput="updateRouletteVoterNames()" class="bg-transparent text-sm font-extrabold text-white focus:outline-none border-b border-transparent focus:border-cyan-400 w-full truncate">
+                            <input type="text" id="rouletteP1NameInput" value="CyberSwiss_99" oninput="updateRouletteVoterNames(true)" class="bg-transparent text-sm font-extrabold text-white focus:outline-none border-b border-transparent focus:border-cyan-400 w-full truncate">
                         </div>
-                        <button onclick="togglePlayerReady(1)" id="p1ReadyBtn" class="px-4 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/50 text-xs font-extrabold flex items-center gap-1.5 shrink-0 transition">
+                        <button onclick="togglePlayerReady(1, true)" id="p1ReadyBtn" class="px-4 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/50 text-xs font-extrabold flex items-center gap-1.5 shrink-0 transition">
                             <i class="ph-bold ph-lock-key-open" id="p1ReadyIcon"></i>
                             <span id="p1ReadyText">Lock In P1</span>
                         </button>
                     </div>
 
-                    <!-- Center Add Game to Pool Input -->
+                    <!-- Center Add Game or Pick from Library -->
                     <div class="lg:col-span-4 flex gap-2">
-                        <input type="text" id="rouletteCustomGameInput" placeholder="Add game to roulette (e.g. Lethal Company)..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-steam-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400">
-                        <button onclick="addGameToRoulettePool()" id="addRouletteGameBtn" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shrink-0 flex items-center gap-1 transition">
+                        <input type="text" id="rouletteCustomGameInput" onkeydown="if(event.key==='Enter') addGameToRoulettePool()" placeholder="Type any game name to add..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-steam-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400">
+                        <button onclick="addGameToRoulettePool()" id="addRouletteGameBtn" class="px-3.5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shrink-0 flex items-center gap-1 transition">
                             <i class="ph-bold ph-plus"></i>
                             <span>Add</span>
                         </button>
@@ -872,9 +847,9 @@
                     <div class="lg:col-span-4 p-3.5 rounded-xl bg-purple-500/5 border border-purple-500/30 flex items-center justify-between gap-3">
                         <div class="min-w-0">
                             <div class="text-[10px] font-mono uppercase tracking-wider text-purple-400 font-bold">Player 2 Voter</div>
-                            <input type="text" id="rouletteP2NameInput" value="ArchonCollector" oninput="updateRouletteVoterNames()" class="bg-transparent text-sm font-extrabold text-white focus:outline-none border-b border-transparent focus:border-purple-400 w-full truncate">
+                            <input type="text" id="rouletteP2NameInput" value="Co-op Partner" oninput="updateRouletteVoterNames(true)" class="bg-transparent text-sm font-extrabold text-white focus:outline-none border-b border-transparent focus:border-purple-400 w-full truncate">
                         </div>
-                        <button onclick="togglePlayerReady(2)" id="p2ReadyBtn" class="px-4 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-400/50 text-xs font-extrabold flex items-center gap-1.5 shrink-0 transition">
+                        <button onclick="togglePlayerReady(2, true)" id="p2ReadyBtn" class="px-4 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-400/50 text-xs font-extrabold flex items-center gap-1.5 shrink-0 transition">
                             <i class="ph-bold ph-lock-key-open" id="p2ReadyIcon"></i>
                             <span id="p2ReadyText">Lock In P2</span>
                         </button>
@@ -894,113 +869,47 @@
     <!-- Footer -->
     <footer class="border-t border-steam-border/60 py-6 mt-12 text-center text-xs text-slate-500">
         <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <p>SteamPulse Analytics • Ready for GitHub + Netlify / Vercel Serverless Deployment</p>
-            <p>Uses Steam Web API & Public CheapShark Store Pricing API. Not affiliated with Valve Corporation.</p>
+            <p>SteamPulse Analytics • Live Steam Web API & Real-Time Co-op Roulette</p>
+            <p>Click any game price in the table to customize it. Not affiliated with Valve Corporation.</p>
         </div>
     </footer>
 
     <!-- ================================================================= -->
-    <!-- MODAL 1: GitHub + Netlify / Vercel Serverless Deployment Guide    -->
+    <!-- MODAL 1: Owned / Shared Library Game Picker for Roulette          -->
     <!-- ================================================================= -->
-    <div id="deployModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="glass-panel rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col border border-steam-accent/30 shadow-2xl overflow-hidden">
-            
-            <!-- Modal Header -->
-            <div class="p-5 border-b border-steam-border flex items-center justify-between bg-slate-900/70">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-lg bg-steam-blue/20 text-steam-accent flex items-center justify-center">
-                        <i class="ph-bold ph-cloud-arrow-up text-xl"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-base sm:text-lg font-bold text-white">Connect to GitHub & Host on Netlify / Vercel</h3>
-                        <p class="text-xs text-slate-400">How to fetch live Steam API data securely without exposing your API key</p>
-                    </div>
+    <div id="libraryPickerModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col border border-emerald-500/40 shadow-2xl overflow-hidden">
+            <div class="p-5 border-b border-steam-border flex items-center justify-between bg-slate-900/80">
+                <div>
+                    <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+                        <i class="ph-fill ph-list-checks text-emerald-400"></i>
+                        Pick Games from Owned / Shared Library
+                    </h3>
+                    <p id="pickerModalSubtitle" class="text-xs text-slate-400 mt-0.5">Select games to add to the Roulette voting pool</p>
                 </div>
-                <button onclick="toggleDeployModal(false)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+                <button onclick="toggleLibraryPickerModal(false)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
                     <i class="ph-bold ph-x"></i>
                 </button>
             </div>
 
-            <!-- Modal Body -->
-            <div class="p-5 sm:p-6 overflow-y-auto space-y-5 text-xs sm:text-sm text-slate-300 leading-relaxed">
-                
-                <!-- Why Serverless Box -->
-                <div class="p-4 rounded-xl bg-steam-blue/10 border border-steam-accent/30">
-                    <h4 class="font-bold text-white flex items-center gap-1.5 mb-1">
-                        <i class="ph-fill ph-info text-steam-accent"></i>
-                        Why do you need a tiny Serverless Function on Netlify or Vercel?
-                    </h4>
-                    <p class="text-xs text-slate-300">
-                        Valve's Steam Web API (<code class="text-steam-accent font-mono">api.steampowered.com</code>) blocks direct browser JavaScript requests via <strong>CORS</strong> so strangers can't steal your private Steam API Key from your website's source code. By dropping the file below into your GitHub repository, Netlify (or Vercel) automatically creates a secure backend endpoint for free!
-                    </p>
+            <div class="p-4 border-b border-steam-border bg-slate-950/60 flex flex-col sm:flex-row gap-2.5">
+                <div class="relative flex-1">
+                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="pickerSearchInput" oninput="renderLibraryPickerList()" placeholder="Search your owned/shared games..." class="w-full pl-9 pr-3 py-2 bg-slate-900 border border-steam-border rounded-xl text-xs text-white focus:outline-none focus:border-emerald-400">
                 </div>
-                    <!-- Ready-to-Copy Serverless Code -->
-                <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="font-mono text-xs font-bold text-steam-accent">File: netlify/functions/steam.js (with GetSteamLevel & Vanity URL Support)</span>
-                        <button onclick="copyServerlessCode()" class="px-3 py-1 rounded-lg bg-steam-blue hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition">
-                            <i class="ph-bold ph-copy"></i>
-                            <span>Copy Updated Backend Code</span>
-                        </button>
-                    </div>
-                    <pre id="serverlessCodeBlock" class="p-4 rounded-xl bg-slate-950 border border-steam-border font-mono text-xs text-cyan-300 overflow-x-auto leading-relaxed">// Save as: netlify/functions/steam.js
-exports.handler = async function(event) {
-  const apiKey = process.env.STEAM_API_KEY;
-  let rawInput = (event.queryStringParameters.steamId || event.queryStringParameters.steamid || "").trim();
-
-  if (!rawInput || !apiKey) {
-    return { statusCode: 400, body: JSON.stringify({ error: "Missing steamId or STEAM_API_KEY" }) };
-  }
-
-  // Strip full Steam profile URLs if pasted directly
-  rawInput = rawInput.replace(/^https?:\/\/steamcommunity\.com\/(id|profiles)\//i, "").replace(/\/.*$/, "");
-
-  try {
-    let steamId = rawInput;
-
-    // 1. If input is a custom Vanity Username (not a 17-digit SteamID64), resolve it first
-    if (!/^\d{17}$/.test(steamId)) {
-      const vanityUrl = `https://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=${apiKey}&vanityurl=${encodeURIComponent(steamId)}`;
-      const vanityRes = await fetch(vanityUrl);
-      const vanityData = await vanityRes.json();
-      if (vanityData.response && vanityData.response.success === 1) {
-        steamId = vanityData.response.steamid;
-      } else {
-        return { statusCode: 404, body: JSON.stringify({ error: "Could not resolve Steam vanity username" }) };
-      }
-    }
-
-    // 2. Fetch Player Summary, Owned Games, and Steam Level in parallel
-    const [profileRes, gamesRes, levelRes] = await Promise.all([
-      fetch(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${apiKey}&steamids=${steamId}`),
-      fetch(`https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${apiKey}&steamid=${steamId}&include_appinfo=1&include_played_free_games=1&format=json`),
-      fetch(`https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/?key=${apiKey}&steamid=${steamId}`)
-    ]);
-
-    const profileData = await profileRes.json();
-    const gamesData = await gamesRes.json();
-    const levelData = await levelRes.json();
-
-    return {
-      statusCode: 200,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({
-        player: profileData.response?.players?.[0] || null,
-        games: gamesData.response?.games || [],
-        level: levelData.response?.player_level ?? null
-      })
-    };
-  } catch (err) {
-    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
-  }
-};</pre>
-                </div>
+                <button onclick="clearRoulettePoolFromPicker()" class="px-3 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 text-xs font-bold shrink-0">
+                    Clear Roulette Pool
+                </button>
             </div>
 
-            <!-- Modal Footer -->
-            <div class="p-4 border-t border-steam-border bg-slate-900/70 flex justify-end">
-                <button onclick="toggleDeployModal(false)" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition">
-                    Got It, Close Guide
+            <div id="libraryPickerListContainer" class="p-4 overflow-y-auto space-y-2 flex-1">
+                <!-- Populated via JS -->
+            </div>
+
+            <div class="p-4 border-t border-steam-border bg-slate-900/80 flex justify-between items-center">
+                <span id="pickerPoolCountStatus" class="text-xs font-mono text-emerald-400">6 games currently in Roulette</span>
+                <button onclick="toggleLibraryPickerModal(false)" class="px-5 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 text-xs font-extrabold transition">
+                    Done Picking Games
                 </button>
             </div>
         </div>
@@ -1058,32 +967,182 @@ exports.handler = async function(event) {
 
     <!-- Application JavaScript -->
     <script>
-        // Currency Exchange Rates relative to USD Base
+        const DEFAULT_STEAM_ENDPOINT = '/.netlify/functions/steam';
+
         const CURRENCY_CONFIG = {
             CHF: { symbol: 'CHF ', rate: 0.88 },
-            EUR: { symbol: '€', rate: 0.92 },
+            EUR: { symbol: 'EUR ', rate: 0.92 },
             USD: { symbol: '$', rate: 1.00 }
         };
 
         let currentCurrency = 'CHF';
         let currentFilter = 'all';
-        let currentProfileKey = 'core';
-        let currentAppMode = 'single'; // 'single' or 'versus'
+        let currentAppMode = 'single';
 
-        // Known Steam Game Retail Price Lookup Dictionary (for instant accurate pricing of common Steam AppIDs)
         const KNOWN_APP_PRICES_USD = {
-            730: 14.99, 1086940: 59.99, 1245620: 59.99, 632360: 24.99, 1091500: 59.99,
-            553850: 39.99, 292030: 39.99, 413150: 14.99, 1172470: 0.00, 1145360: 24.99,
-            427520: 35.00, 105600: 9.99, 892970: 19.99, 1174180: 59.99, 548430: 29.99,
-            367520: 14.99, 2379780: 14.99, 1966720: 9.99, 646570: 24.99, 275850: 59.99,
-            1593500: 49.99, 620: 9.99, 1716740: 69.99, 1888930: 59.99, 814380: 59.99,
-            632470: 39.99, 753640: 24.99, 504230: 19.99, 281990: 39.99, 1158310: 49.99,
-            294100: 34.99, 289070: 59.99, 1363080: 39.99, 2050650: 39.99, 223850: 34.99,
-            1623730: 29.99, 1817070: 59.99, 570: 0.00, 252490: 39.99, 359550: 19.99,
-            578080: 29.99, 824270: 9.99, 1938090: 69.99, 440: 0.00, 271590: 29.99
+            730: { retail: 0.00, sale: 0.00 },
+            570: { retail: 0.00, sale: 0.00 },
+            440: { retail: 0.00, sale: 0.00 },
+            1172470: { retail: 0.00, sale: 0.00 },
+            578080: { retail: 0.00, sale: 0.00 },
+            230410: { retail: 0.00, sale: 0.00 },
+            238960: { retail: 0.00, sale: 0.00 },
+            1085660: { retail: 0.00, sale: 0.00 },
+            1222670: { retail: 0.00, sale: 0.00 },
+            2357570: { retail: 0.00, sale: 0.00 },
+            1599340: { retail: 0.00, sale: 0.00 },
+            1962663: { retail: 0.00, sale: 0.00 },
+            236390: { retail: 0.00, sale: 0.00 },
+            304930: { retail: 0.00, sale: 0.00 },
+            1449850: { retail: 0.00, sale: 0.00 },
+            2073850: { retail: 0.00, sale: 0.00 },
+            2767030: { retail: 0.00, sale: 0.00 },
+            1086940: { retail: 59.99, sale: 47.99 },
+            1245620: { retail: 59.99, sale: 35.99 },
+            1091500: { retail: 59.99, sale: 29.99 },
+            553850: { retail: 39.99, sale: 31.99 },
+            1174180: { retail: 59.99, sale: 19.79 },
+            271590: { retail: 29.99, sale: 14.99 },
+            292030: { retail: 39.99, sale: 9.99 },
+            632360: { retail: 24.99, sale: 8.24 },
+            413150: { retail: 14.99, sale: 9.99 },
+            105600: { retail: 9.99, sale: 4.99 },
+            252490: { retail: 39.99, sale: 19.99 },
+            892970: { retail: 19.99, sale: 9.99 },
+            739630: { retail: 19.99, sale: 14.99 },
+            1966720: { retail: 9.99, sale: 6.99 },
+            427520: { retail: 35.00, sale: 35.00 },
+            526870: { retail: 39.99, sale: 19.99 },
+            294100: { retail: 34.99, sale: 27.99 },
+            582010: { retail: 29.99, sale: 9.89 },
+            548430: { retail: 29.99, sale: 9.89 },
+            359550: { retail: 19.99, sale: 3.99 },
+            550: { retail: 9.99, sale: 0.99 },
+            4000: { retail: 9.99, sale: 4.99 },
+            252950: { retail: 19.99, sale: 9.99 },
+            264710: { retail: 29.99, sale: 9.89 },
+            367520: { retail: 14.99, sale: 7.49 },
+            1145360: { retail: 24.99, sale: 9.99 },
+            1145350: { retail: 29.99, sale: 26.99 },
+            381210: { retail: 19.99, sale: 7.99 },
+            346110: { retail: 14.99, sale: 4.99 },
+            1623730: { retail: 29.99, sale: 22.49 },
+            2358720: { retail: 59.99, sale: 49.99 },
+            218620: { retail: 9.99, sale: 0.99 },
+            1938090: { retail: 69.99, sale: 38.49 },
+            227300: { retail: 19.99, sale: 4.99 },
+            322330: { retail: 14.99, sale: 5.09 },
+            1426210: { retail: 39.99, sale: 9.99 },
+            1172620: { retail: 39.99, sale: 19.99 },
+            275850: { retail: 59.99, sale: 23.99 },
+            221100: { retail: 49.99, sale: 24.99 },
+            394360: { retail: 49.99, sale: 14.99 },
+            289070: { retail: 59.99, sale: 5.99 },
+            281990: { retail: 39.99, sale: 9.99 },
+            1158310: { retail: 49.99, sale: 24.99 },
+            2379780: { retail: 14.99, sale: 12.74 },
+            646570: { retail: 24.99, sale: 8.49 },
+            1593500: { retail: 49.99, sale: 19.99 },
+            620: { retail: 9.99, sale: 0.99 },
+            1716740: { retail: 69.99, sale: 41.99 },
+            1888930: { retail: 59.99, sale: 35.99 },
+            814380: { retail: 59.99, sale: 29.99 },
+            632470: { retail: 39.99, sale: 9.99 },
+            753640: { retail: 24.99, sale: 14.99 },
+            504230: { retail: 19.99, sale: 4.99 },
+            108600: { retail: 19.99, sale: 13.39 },
+            960090: { retail: 13.99, sale: 2.79 },
+            242760: { retail: 19.99, sale: 4.99 },
+            1326470: { retail: 29.99, sale: 14.99 },
+            648800: { retail: 19.99, sale: 13.39 },
+            1260320: { retail: 19.99, sale: 9.99 },
+            2881650: { retail: 7.99, sale: 5.99 },
+            1604030: { retail: 19.99, sale: 13.99 },
+            431960: { retail: 4.99, sale: 3.99 }
         };
 
-        // Rich Preset Profiles with real Steam AppIDs
+        function getAccurateGamePrice(appid, title = '', hours = 0, backendPriceOverview = null) {
+            try {
+                const customOverrides = JSON.parse(localStorage.getItem('steampulse_price_overrides') || '{}');
+                if (customOverrides[appid] !== undefined) {
+                    const customRetail = parseFloat(customOverrides[appid]);
+                    return { retailUsd: customRetail, saleUsd: +(customRetail * 0.5).toFixed(2) };
+                }
+            } catch (e) {}
+
+            if (backendPriceOverview && typeof backendPriceOverview.initial === 'number') {
+                return {
+                    retailUsd: +(backendPriceOverview.initial / 100).toFixed(2),
+                    saleUsd: +((backendPriceOverview.final || backendPriceOverview.initial) / 100).toFixed(2)
+                };
+            }
+
+            if (KNOWN_APP_PRICES_USD[appid]) {
+                return {
+                    retailUsd: KNOWN_APP_PRICES_USD[appid].retail,
+                    saleUsd: KNOWN_APP_PRICES_USD[appid].sale
+                };
+            }
+
+            const lower = (title || '').toLowerCase();
+            if (lower.includes('demo') || lower.includes('playtest') || lower.includes('server') || lower.includes('beta') || lower.includes('sdk')) {
+                return { retailUsd: 0.00, saleUsd: 0.00 };
+            }
+
+            const fallbackRetail = hours > 40 ? 24.99 : 14.99;
+            return { retailUsd: fallbackRetail, saleUsd: +(fallbackRetail * 0.45).toFixed(2) };
+        }
+
+        function promptEditGamePrice(appid, currentRetailUsd) {
+            const cfg = CURRENCY_CONFIG[currentCurrency];
+            const currentInDisplayCurr = (currentRetailUsd * cfg.rate).toFixed(2);
+            const findGame = (activeProfile.games || []).find(g => g.appid === appid);
+            if (!findGame) return;
+
+            const rowPriceEl = document.getElementById(`price-cell-${appid}`);
+            if (!rowPriceEl) return;
+
+            rowPriceEl.innerHTML = `
+                <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                    <input type="number" id="inline-price-input-${appid}" value="${currentInDisplayCurr}" min="0" step="0.5" class="w-20 px-2 py-1 bg-slate-950 border border-steam-accent rounded text-xs text-white font-mono focus:outline-none">
+                    <button onclick="saveInlineGamePrice(${appid})" class="px-2 py-1 bg-emerald-500 text-slate-950 rounded text-xs font-bold">OK</button>
+                </div>
+            `;
+            const inp = document.getElementById(`inline-price-input-${appid}`);
+            if (inp) {
+                inp.focus();
+                inp.select();
+                inp.onkeydown = (ev) => {
+                    if (ev.key === 'Enter') saveInlineGamePrice(appid);
+                    if (ev.key === 'Escape') renderLibraryTable();
+                };
+            }
+        }
+
+        function saveInlineGamePrice(appid) {
+            const inp = document.getElementById(`inline-price-input-${appid}`);
+            if (!inp) return;
+            const enteredVal = Math.max(0, parseFloat(inp.value) || 0);
+            const cfg = CURRENCY_CONFIG[currentCurrency];
+            const usdVal = +(enteredVal / cfg.rate).toFixed(2);
+
+            try {
+                const customOverrides = JSON.parse(localStorage.getItem('steampulse_price_overrides') || '{}');
+                customOverrides[appid] = usdVal;
+                localStorage.setItem('steampulse_price_overrides', JSON.stringify(customOverrides));
+            } catch (e) {}
+
+            (activeProfile.games || []).forEach(g => {
+                if (g.appid === appid) {
+                    g.retailUsd = usdVal;
+                    g.saleUsd = +(usdVal * 0.5).toFixed(2);
+                }
+            });
+
+            updateDashboard();
+            showToast(`Updated store price for AppID ${appid}!`, 'success');
+        }
+
         const PRESET_PROFILES = {
             core: {
                 name: 'CyberSwiss_99',
@@ -1094,7 +1153,7 @@ exports.handler = async function(event) {
                 genre: 'Action RPG & Tactical Shooter',
                 avatar: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&w=200&q=80',
                 games: [
-                    { appid: 730, title: 'Counter-Strike 2', hours: 1420.5, retailUsd: 14.99, saleUsd: 0.00, genre: 'Tactical Shooter' },
+                    { appid: 730, title: 'Counter-Strike 2', hours: 1420.5, retailUsd: 0.00, saleUsd: 0.00, genre: 'Tactical Shooter' },
                     { appid: 1086940, title: "Baldur's Gate 3", hours: 312.4, retailUsd: 59.99, saleUsd: 47.99, genre: 'CRPG' },
                     { appid: 1245620, title: 'ELDEN RING', hours: 268.0, retailUsd: 59.99, saleUsd: 35.99, genre: 'Action RPG' },
                     { appid: 632360, title: 'Risk of Rain 2', hours: 412.2, retailUsd: 24.99, saleUsd: 8.24, genre: 'Roguelike' },
@@ -1111,17 +1170,13 @@ exports.handler = async function(event) {
                     { appid: 548430, title: 'Deep Rock Galactic', hours: 64.0, retailUsd: 29.99, saleUsd: 9.89, genre: 'Co-op FPS' },
                     { appid: 367520, title: 'Hollow Knight', hours: 52.4, retailUsd: 14.99, saleUsd: 7.49, genre: 'Metroidvania' },
                     { appid: 2379780, title: 'Balatro', hours: 68.2, retailUsd: 14.99, saleUsd: 12.74, genre: 'Deckbuilder' },
-                    { appid: 1966720, title: 'Lethal Company', hours: 31.5, retailUsd: 9.99, saleUsd: 6.99, genre: 'Co-op Horror' },
-                    { appid: 646570, title: 'Slay the Spire', hours: 82.0, retailUsd: 24.99, saleUsd: 8.49, genre: 'Deckbuilder' },
-                    { appid: 275850, title: "No Man's Sky", hours: 44.1, retailUsd: 59.99, saleUsd: 23.99, genre: 'Space Survival' },
-                    { appid: 1593500, title: 'God of War', hours: 38.5, retailUsd: 49.99, saleUsd: 24.99, genre: 'Action Adventure' },
-                    { appid: 620, title: 'Portal 2', hours: 19.4, retailUsd: 9.99, saleUsd: 0.99, genre: 'Puzzle' },
+                    { appid: 1966720, title: 'Lethal Company', hours: 1.5, retailUsd: 9.99, saleUsd: 6.99, genre: 'Co-op Horror' },
+                    { appid: 739630, title: 'Phasmophobia', hours: 0.8, retailUsd: 19.99, saleUsd: 14.99, genre: 'Co-op Horror' },
                     { appid: 1716740, title: 'Starfield', hours: 0.0, retailUsd: 69.99, saleUsd: 41.99, genre: 'Space RPG' },
                     { appid: 1888930, title: 'The Last of Us Part I', hours: 0.0, retailUsd: 59.99, saleUsd: 35.99, genre: 'Action Adventure' },
                     { appid: 814380, title: 'Sekiro: Shadows Die Twice', hours: 0.0, retailUsd: 59.99, saleUsd: 29.99, genre: 'Souls-like' },
                     { appid: 632470, title: 'Disco Elysium - The Final Cut', hours: 0.0, retailUsd: 39.99, saleUsd: 9.99, genre: 'Narrative RPG' },
-                    { appid: 753640, title: 'Outer Wilds', hours: 0.0, retailUsd: 24.99, saleUsd: 14.99, genre: 'Exploration' },
-                    { appid: 504230, title: 'Celeste', hours: 0.0, retailUsd: 19.99, saleUsd: 4.99, genre: 'Platformer' }
+                    { appid: 753640, title: 'Outer Wilds', hours: 0.0, retailUsd: 24.99, saleUsd: 14.99, genre: 'Exploration' }
                 ]
             },
             collector: {
@@ -1130,83 +1185,177 @@ exports.handler = async function(event) {
                 level: 142,
                 createdYear: 2008,
                 badges: 195,
-                genre: 'Grand Strategy & RPG Hoarder',
+                genre: 'Grand Strategy & Co-op',
                 avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
                 games: [
-                    { appid: 281990, title: 'Stellaris', hours: 840.0, retailUsd: 39.99, saleUsd: 9.99, genre: 'Grand Strategy' },
-                    { appid: 1158310, title: 'Crusader Kings III', hours: 615.2, retailUsd: 49.99, saleUsd: 24.99, genre: 'Grand Strategy' },
-                    { appid: 294100, title: 'RimWorld', hours: 920.5, retailUsd: 34.99, saleUsd: 27.99, genre: 'Colony Sim' },
-                    { appid: 289070, title: "Sid Meier's Civilization VI", hours: 410.0, retailUsd: 59.99, saleUsd: 5.99, genre: 'Turn-Based Strategy' },
+                    { appid: 553850, title: 'HELLDIVERS 2', hours: 84.0, retailUsd: 39.99, saleUsd: 31.99, genre: 'Co-op Shooter' },
+                    { appid: 1966720, title: 'Lethal Company', hours: 42.0, retailUsd: 9.99, saleUsd: 6.99, genre: 'Co-op Horror' },
+                    { appid: 548430, title: 'Deep Rock Galactic', hours: 110.0, retailUsd: 29.99, saleUsd: 9.89, genre: 'Co-op FPS' },
                     { appid: 1086940, title: "Baldur's Gate 3", hours: 215.0, retailUsd: 59.99, saleUsd: 47.99, genre: 'CRPG' },
-                    { appid: 1363080, title: 'Manor Lords', hours: 0.0, retailUsd: 39.99, saleUsd: 29.99, genre: 'City Builder' },
-                    { appid: 2050650, title: 'Resident Evil 4', hours: 0.0, retailUsd: 39.99, saleUsd: 19.99, genre: 'Survival Horror' },
-                    { appid: 223850, title: '3DMark', hours: 14.2, retailUsd: 34.99, saleUsd: 8.74, genre: 'Benchmark' },
+                    { appid: 632360, title: 'Risk of Rain 2', hours: 95.0, retailUsd: 24.99, saleUsd: 8.24, genre: 'Roguelike' },
+                    { appid: 892970, title: 'Valheim', hours: 64.0, retailUsd: 19.99, saleUsd: 9.99, genre: 'Survival' },
                     { appid: 1245620, title: 'ELDEN RING', hours: 85.0, retailUsd: 59.99, saleUsd: 35.99, genre: 'Action RPG' },
                     { appid: 1091500, title: 'Cyberpunk 2077', hours: 42.0, retailUsd: 59.99, saleUsd: 29.99, genre: 'Open World RPG' },
-                    { appid: 1174180, title: 'Red Dead Redemption 2', hours: 19.5, retailUsd: 59.99, saleUsd: 19.79, genre: 'Open World' },
-                    { appid: 1623730, title: 'Palworld', hours: 0.0, retailUsd: 29.99, saleUsd: 22.49, genre: 'Survival' },
-                    { appid: 1817070, title: "Marvel's Spider-Man Remastered", hours: 0.0, retailUsd: 59.99, saleUsd: 35.99, genre: 'Action' }
-                ]
-            },
-            competitive: {
-                name: 'FlickShot_CH',
-                steamId: '76561198119283741',
-                level: 32,
-                createdYear: 2017,
-                badges: 19,
-                genre: 'Competitive FPS & Esports',
-                avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=200&q=80',
-                games: [
-                    { appid: 730, title: 'Counter-Strike 2', hours: 3890.0, retailUsd: 14.99, saleUsd: 0.00, genre: 'Tactical Shooter' },
-                    { appid: 570, title: 'Dota 2', hours: 1940.5, retailUsd: 0.00, saleUsd: 0.00, genre: 'MOBA' },
-                    { appid: 252490, title: 'Rust', hours: 1120.0, retailUsd: 39.99, saleUsd: 19.99, genre: 'Survival PvP' },
-                    { appid: 359550, title: "Tom Clancy's Rainbow Six Siege", hours: 685.4, retailUsd: 19.99, saleUsd: 7.99, genre: 'Tactical FPS' },
-                    { appid: 578080, title: 'PUBG: BATTLEGROUNDS', hours: 420.0, retailUsd: 29.99, saleUsd: 0.00, genre: 'Battle Royale' },
-                    { appid: 632360, title: 'Risk of Rain 2', hours: 190.2, retailUsd: 24.99, saleUsd: 8.24, genre: 'Roguelike' },
-                    { appid: 824270, title: "KovaaK's", hours: 245.0, retailUsd: 9.99, saleUsd: 4.99, genre: 'Aim Trainer' },
-                    { appid: 1938090, title: 'Call of Duty', hours: 130.5, retailUsd: 69.99, saleUsd: 45.49, genre: 'FPS' }
+                    { appid: 1174180, title: 'Red Dead Redemption 2', hours: 19.5, retailUsd: 59.99, saleUsd: 19.79, genre: 'Open World' }
                 ]
             }
         };
 
-        // Deep copy active profile state for Single Mode and Versus Mode
         let activeProfile = JSON.parse(JSON.stringify(PRESET_PROFILES.core));
         let versusP1Profile = JSON.parse(JSON.stringify(PRESET_PROFILES.core));
         let versusP2Profile = JSON.parse(JSON.stringify(PRESET_PROFILES.collector));
 
-        // =====================================================================
-        // CO-OP CASINO ROULETTE & BLIND READY-CHECK STATE
-        // =====================================================================
+        let rouletteMyRole = 1;
         let rouletteBlindMode = true;
         let rouletteAudioEnabled = true;
         let rouletteP1Ready = false;
         let rouletteP2Ready = false;
         let rouletteIsSpinning = false;
-        let rouletteRoomCode = 'PULSE-' + Math.floor(100 + Math.random() * 900);
-        let rouletteChannel = null;
-        try {
-            rouletteChannel = new BroadcastChannel('steampulse_coop_roulette');
-            rouletteChannel.onmessage = (ev) => {
-                if (ev.data && ev.data.type === 'SYNC_STATE' && ev.data.room === rouletteRoomCode) {
-                    roulettePool = ev.data.pool;
-                    rouletteP1Ready = ev.data.p1Ready;
-                    rouletteP2Ready = ev.data.p2Ready;
-                    renderRouletteArena();
-                    showToast('Live Room Synced with Co-op Partner!', 'info');
+        let rouletteP1Account = JSON.parse(JSON.stringify(PRESET_PROFILES.core));
+        let rouletteP2Account = null;
+        let rouletteAvailableLibrary = [];
+        let rouletteRoomCode = 'SP-' + Math.floor(1000 + Math.random() * 9000);
+        let mqttClient = null;
+        let myClientId = 'peer_' + Math.random().toString(36).substring(2, 9);
+        let connectedPeers = new Set([myClientId]);
+        let roulettePool = [];
+
+        function recomputeRouletteAvailableLibrary(resetPoolWithGames = false) {
+            const p1Games = (rouletteP1Account && rouletteP1Account.games) ? rouletteP1Account.games : [];
+            const badge = document.getElementById('rouletteOwnershipModeBadge');
+            const countEl = document.getElementById('pickerAvailableCount');
+
+            if (rouletteP2Account && Array.isArray(rouletteP2Account.games) && rouletteP2Account.games.length > 0) {
+                const p2Map = new Map();
+                rouletteP2Account.games.forEach(g => p2Map.set(Number(g.appid), g));
+                const shared = p1Games.filter(g1 => p2Map.has(Number(g1.appid)));
+
+                rouletteAvailableLibrary = shared.map(g => ({
+                    appid: g.appid,
+                    title: g.title,
+                    hours: g.hours,
+                    genre: 'Shared by P1 & P2'
+                }));
+
+                if (badge) {
+                    badge.textContent = `Showing: Shared Games Owned by BOTH (${rouletteAvailableLibrary.length} Titles)`;
+                    badge.className = 'px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40';
                 }
-            };
-        } catch (e) {}
+            } else {
+                rouletteAvailableLibrary = p1Games.map(g => ({
+                    appid: g.appid,
+                    title: g.title,
+                    hours: g.hours,
+                    genre: g.genre || 'Owned by P1'
+                }));
 
-        let roulettePool = [
-            { appid: 553850, title: 'HELLDIVERS 2', hours: 1.2, p1Pct: 90, p2Pct: 85, genre: 'Co-op Shooter' },
-            { appid: 1966720, title: 'Lethal Company', hours: 0.5, p1Pct: 75, p2Pct: 95, genre: 'Co-op Horror' },
-            { appid: 548430, title: 'Deep Rock Galactic', hours: 1.8, p1Pct: 80, p2Pct: 80, genre: 'Co-op FPS' },
-            { appid: 632360, title: 'Risk of Rain 2', hours: 0.0, p1Pct: 65, p2Pct: 70, genre: 'Roguelike' },
-            { appid: 892970, title: 'Valheim', hours: 0.4, p1Pct: 50, p2Pct: 60, genre: 'Survival' },
-            { appid: 1086940, title: "Baldur's Gate 3", hours: 0.0, p1Pct: 85, p2Pct: 90, genre: 'Co-op CRPG' }
-        ];
+                if (badge) {
+                    badge.textContent = `Showing: ${rouletteP1Account.name}'s Owned Games (${rouletteAvailableLibrary.length} Titles)`;
+                    badge.className = 'px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30';
+                }
+            }
 
-        // Switch between Single Profile, AccVersusAcc, and Co-op Casino Roulette Mode
+            if (countEl) countEl.textContent = rouletteAvailableLibrary.length;
+
+            if (resetPoolWithGames || roulettePool.length === 0) {
+                const defaultSelection = rouletteAvailableLibrary.slice(0, 8);
+                roulettePool = defaultSelection.map(g => ({
+                    appid: g.appid,
+                    title: g.title,
+                    hours: g.hours || 0,
+                    p1Pct: 75,
+                    p2Pct: 75,
+                    genre: g.genre
+                }));
+            }
+        }
+
+        function initLiveRoomWebSocket(roomCode) {
+            rouletteRoomCode = roomCode;
+            const codeEl = document.getElementById('rouletteRoomCodeDisplay');
+            if (codeEl) codeEl.textContent = roomCode;
+
+            if (mqttClient) {
+                try { mqttClient.end(true); } catch (e) {}
+            }
+
+            const topicBase = `steampulse/v35/live/${roomCode}`;
+            try {
+                mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt', {
+                    clientId: 'sp_' + myClientId + '_' + Math.floor(Math.random() * 1000),
+                    clean: true,
+                    connectTimeout: 5000,
+                    reconnectPeriod: 3000
+                });
+
+                mqttClient.on('connect', () => {
+                    const statusText = document.getElementById('liveRoomStatusText');
+                    if (statusText) statusText.textContent = `LIVE ROOM ${roomCode} ONLINE`;
+                    mqttClient.subscribe(`${topicBase}/state`, { qos: 0 });
+                    mqttClient.subscribe(`${topicBase}/spin`, { qos: 0 });
+                    mqttClient.subscribe(`${topicBase}/presence`, { qos: 0 });
+
+                    mqttClient.publish(`${topicBase}/presence`, JSON.stringify({
+                        sender: myClientId,
+                        action: 'JOIN',
+                        ts: Date.now()
+                    }));
+                });
+
+                mqttClient.on('message', (topic, messageBuffer) => {
+                    try {
+                        const data = JSON.parse(messageBuffer.toString());
+                        if (!data || data.sender === myClientId) return;
+
+                        connectedPeers.add(data.sender);
+                        updatePeerCountUI();
+
+                        if (topic.endsWith('/presence')) {
+                            if (data.action === 'JOIN') {
+                                broadcastRouletteState();
+                                showToast('A Co-op Partner joined your Live Room!', 'success');
+                            }
+                        } else if (topic.endsWith('/state')) {
+                            if (Array.isArray(data.pool)) roulettePool = data.pool;
+                            if (typeof data.p1Ready === 'boolean') rouletteP1Ready = data.p1Ready;
+                            if (typeof data.p2Ready === 'boolean') rouletteP2Ready = data.p2Ready;
+                            if (typeof data.blindMode === 'boolean') rouletteBlindMode = data.blindMode;
+                            if (data.p1Name) document.getElementById('rouletteP1NameInput').value = data.p1Name;
+                            if (data.p2Name) document.getElementById('rouletteP2NameInput').value = data.p2Name;
+                            renderRouletteArena();
+                        } else if (topic.endsWith('/spin')) {
+                            rouletteP1Ready = true;
+                            rouletteP2Ready = true;
+                            renderRouletteArena();
+                            executeDeterministicReelSpin(data.winnerAppId, data.jitterRatio, data.reelAppIds);
+                        }
+                    } catch (err) {}
+                });
+            } catch (e) {}
+        }
+
+        function updatePeerCountUI() {
+            const el = document.getElementById('livePeerCount');
+            if (!el) return;
+            const count = connectedPeers.size;
+            el.textContent = count > 1 ? `${count} Players Synced Live!` : `1 (Share link for P2)`;
+        }
+
+        function setRouletteRole(roleNum) {
+            rouletteMyRole = roleNum;
+            const p1Btn = document.getElementById('roleP1Btn');
+            const p2Btn = document.getElementById('roleP2Btn');
+            if (roleNum === 1) {
+                p1Btn.className = 'px-2.5 py-1.5 rounded-lg bg-cyan-500 text-slate-950 transition flex items-center gap-1';
+                p2Btn.className = 'px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-white transition flex items-center gap-1';
+            } else {
+                p2Btn.className = 'px-2.5 py-1.5 rounded-lg bg-purple-500 text-slate-950 transition flex items-center gap-1';
+                p1Btn.className = 'px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-white transition flex items-center gap-1';
+            }
+            renderRouletteArena();
+            showToast(`Switched your active voter role to Player ${roleNum}!`, 'info');
+        }
+
         function switchAppMode(mode) {
             currentAppMode = mode;
             const singleContainer = document.getElementById('singleModeContainer');
@@ -1239,7 +1388,6 @@ exports.handler = async function(event) {
             }
         }
 
-        // Send currently loaded Single Profile into Player 1 slot of AccVersusAcc
         function sendCurrentToVersus() {
             versusP1Profile = JSON.parse(JSON.stringify(activeProfile));
             document.getElementById('versusP1Input').value = versusP1Profile.steamId;
@@ -1254,23 +1402,12 @@ exports.handler = async function(event) {
             showToast(`Updated Challenger 1 to ${versusP1Profile.name}`, 'success');
         }
 
-        function loadVersusPreset(p1Key, p2Key) {
-            versusP1Profile = JSON.parse(JSON.stringify(PRESET_PROFILES[p1Key]));
-            versusP2Profile = JSON.parse(JSON.stringify(PRESET_PROFILES[p2Key]));
-            document.getElementById('versusP1Input').value = versusP1Profile.steamId;
-            document.getElementById('versusP2Input').value = versusP2Profile.steamId;
-            renderVersusArena();
-            showToast(`Battle Loaded: ${versusP1Profile.name} vs ${versusP2Profile.name}!`, 'info');
-        }
-
-        // Format currency helper
         function formatMoney(usdAmount) {
             const cfg = CURRENCY_CONFIG[currentCurrency];
             const converted = usdAmount * cfg.rate;
             return `${cfg.symbol}${converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         }
 
-        // Toast Helper
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -1288,7 +1425,6 @@ exports.handler = async function(event) {
             }, 3600);
         }
 
-        // Switch Currency
         function setCurrency(curr) {
             currentCurrency = curr;
             ['CHF', 'EUR', 'USD'].forEach(c => {
@@ -1305,26 +1441,6 @@ exports.handler = async function(event) {
             }
         }
 
-        // Switch Preset Profile
-        function loadPresetProfile(key) {
-            currentProfileKey = key;
-            activeProfile = JSON.parse(JSON.stringify(PRESET_PROFILES[key]));
-            document.getElementById('steamIdInput').value = activeProfile.steamId;
-
-            ['core', 'collector', 'competitive'].forEach(k => {
-                const btn = document.getElementById(`preset-${k}`);
-                if (k === key) {
-                    btn.className = 'text-xs px-2.5 py-1.5 rounded-lg bg-steam-blue/20 border border-steam-accent/50 text-steam-accent font-medium transition';
-                } else {
-                    btn.className = 'text-xs px-2.5 py-1.5 rounded-lg bg-slate-900/70 hover:bg-slate-800 border border-steam-border text-slate-300 transition';
-                }
-            });
-
-            updateDashboard();
-            showToast(`Loaded "${activeProfile.name}" (LVL ${activeProfile.level})`, 'info');
-        }
-
-        // Helper: Compute aggregated stats for any profile object
         function computeProfileMetrics(profile) {
             const games = profile.games || [];
             let totalRetailUsd = 0;
@@ -1375,13 +1491,11 @@ exports.handler = async function(event) {
             };
         }
 
-        // Calculate & Render Single Profile Dashboard Metrics
         function updateDashboard() {
             const currentYear = new Date().getFullYear();
             const accountAgeYears = Math.max(1, currentYear - (activeProfile.createdYear || 2016));
             const stats = computeProfileMetrics(activeProfile);
 
-            // Update Profile Header including id="profile-level"
             document.getElementById('profileAvatar').src = activeProfile.avatar;
             document.getElementById('profileName').textContent = activeProfile.name;
             document.getElementById('profile-level').textContent = `LVL ${activeProfile.level ?? 0}`;
@@ -1393,7 +1507,6 @@ exports.handler = async function(event) {
 
             const totalDays = (stats.totalHours / 24).toFixed(1);
 
-            // Populate KPI Cards
             document.getElementById('kpiRetailWorth').textContent = formatMoney(stats.totalRetailUsd);
             document.getElementById('kpiSaleWorth').textContent = formatMoney(stats.totalSaleUsd);
             document.getElementById('kpiTotalHours').textContent = `${Math.round(stats.totalHours).toLocaleString()} hrs`;
@@ -1404,7 +1517,6 @@ exports.handler = async function(event) {
             document.getElementById('kpiPlayedCount').textContent = `${stats.playedCount} / ${stats.totalGamesCount} Played`;
             document.getElementById('kpiCompletionBar').style.width = `${stats.completionPct}%`;
 
-            // Populate Pile of Shame & Insights
             document.getElementById('shameWorthValue').textContent = formatMoney(stats.unplayedWorthUsd);
             document.getElementById('shameCountText').textContent = `${stats.unplayedCount} game${stats.unplayedCount === 1 ? '' : 's'} bought with 0.0 hours played.`;
 
@@ -1416,18 +1528,13 @@ exports.handler = async function(event) {
             const dailyAvg = stats.totalHours / (accountAgeYears * 365);
             document.getElementById('dailyAverageHours').textContent = `${dailyAvg.toFixed(2)} Hours / Day`;
 
-            // Render Top 5 Most Played Bars
             renderTop5Bars(activeProfile.games, stats.totalHours);
-
-            // Render Library Table
             renderLibraryTable();
         }
 
-        // Fetch a Steam Profile from the Netlify Serverless Function (or fallback if local)
         async function fetchSteamAccountData(rawInput) {
-            const endpoint = document.getElementById('serverlessEndpointInput').value.trim();
+            const endpoint = DEFAULT_STEAM_ENDPOINT;
             try {
-                // Pass both steamId and steamid query params so both versions of steam.js work seamlessly
                 const res = await fetch(`${endpoint}?steamId=${encodeURIComponent(rawInput)}&steamid=${encodeURIComponent(rawInput)}`);
                 if (res.ok) {
                     const data = await res.json();
@@ -1438,39 +1545,16 @@ exports.handler = async function(event) {
 
                         const mappedGames = data.games.map(g => {
                             const hours = +((g.playtime_forever || 0) / 60).toFixed(1);
-                            const knownPrice = KNOWN_APP_PRICES_USD[g.appid];
-                            const retailUsd = knownPrice !== undefined ? knownPrice : (hours > 25 ? 29.99 : 19.99);
+                            const pricing = getAccurateGamePrice(g.appid, g.name, hours, g.price_overview);
                             return {
                                 appid: g.appid,
                                 title: g.name || `App ${g.appid}`,
                                 hours,
-                                retailUsd,
-                                saleUsd: +(retailUsd * 0.5).toFixed(2),
+                                retailUsd: pricing.retailUsd,
+                                saleUsd: pricing.saleUsd,
                                 genre: 'Steam Library'
                             };
                         });
-
-                        // Enrich top 5 most played unknown games with live CheapShark store prices
-                        const topUnknown = [...mappedGames]
-                            .filter(g => KNOWN_APP_PRICES_USD[g.appid] === undefined && g.title)
-                            .sort((a, b) => b.hours - a.hours)
-                            .slice(0, 5);
-
-                        await Promise.all(topUnknown.map(async (game) => {
-                            try {
-                                const csRes = await fetch(`https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(game.title)}&limit=1`);
-                                if (csRes.ok) {
-                                    const csData = await csRes.json();
-                                    if (csData && csData.length > 0 && csData[0].cheapest) {
-                                        const sale = parseFloat(csData[0].cheapest);
-                                        game.saleUsd = sale;
-                                        game.retailUsd = Math.max(sale, +(sale * 1.5).toFixed(2));
-                                    }
-                                }
-                            } catch (err) {
-                                // Ignore individual lookup errors
-                            }
-                        }));
 
                         return {
                             isLive: true,
@@ -1487,11 +1571,8 @@ exports.handler = async function(event) {
                         };
                     }
                 }
-            } catch (e) {
-                // Serverless endpoint not reachable in preview
-            }
+            } catch (e) {}
 
-            // Check if rawInput matches any preset ID or name
             const presetMatch = Object.values(PRESET_PROFILES).find(
                 p => p.steamId === rawInput || p.name.toLowerCase() === rawInput.toLowerCase()
             );
@@ -1499,7 +1580,6 @@ exports.handler = async function(event) {
                 return { isLive: false, profile: JSON.parse(JSON.stringify(presetMatch)) };
             }
 
-            // Deterministic Custom Profile Fallback when testing offline
             const seed = rawInput.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
             const basePreset = seed % 2 === 0 ? PRESET_PROFILES.core : PRESET_PROFILES.collector;
             const cloned = JSON.parse(JSON.stringify(basePreset));
@@ -1509,7 +1589,6 @@ exports.handler = async function(event) {
             return { isLive: false, profile: cloned };
         }
 
-        // Handle Single Account Analyze Button
         async function handleAnalyzeAccount() {
             const inputVal = document.getElementById('steamIdInput').value.trim();
             if (!inputVal) {
@@ -1519,14 +1598,19 @@ exports.handler = async function(event) {
 
             const btn = document.getElementById('analyzeBtn');
             const orig = btn.innerHTML;
-            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i><span>Analyzing...</span>`;
+            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i><span>Loading...</span>`;
 
             const result = await fetchSteamAccountData(inputVal);
             activeProfile = result.profile;
 
+            rouletteP1Account = JSON.parse(JSON.stringify(activeProfile));
+            const rP1Input = document.getElementById('rouletteP1SteamInput');
+            const rP1Name = document.getElementById('rouletteP1NameInput');
+            if (rP1Input) rP1Input.value = activeProfile.steamId;
+            if (rP1Name) rP1Name.value = activeProfile.name;
+            recomputeRouletteAvailableLibrary(true);
+
             if (result.isLive) {
-                document.getElementById('connectionModeBadge').textContent = 'Mode: Live Serverless API Connected';
-                document.getElementById('connectionModeBadge').className = 'px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
                 showToast(`Synced live Steam profile for ${activeProfile.name} (LVL ${activeProfile.level})!`, 'success');
             } else {
                 showToast(`Loaded profile for ${activeProfile.name} (LVL ${activeProfile.level}).`, 'info');
@@ -1536,7 +1620,6 @@ exports.handler = async function(event) {
             btn.innerHTML = orig;
         }
 
-        // Handle 1v1 AccVersusAcc Battle Button
         async function handleStartVersusBattle() {
             const p1Input = document.getElementById('versusP1Input').value.trim();
             const p2Input = document.getElementById('versusP2Input').value.trim();
@@ -1563,12 +1646,10 @@ exports.handler = async function(event) {
             btn.innerHTML = orig;
         }
 
-        // Render the entire 1v1 AccVersusAcc Arena UI
         function renderVersusArena() {
             const s1 = computeProfileMetrics(versusP1Profile);
             const s2 = computeProfileMetrics(versusP2Profile);
 
-            // Populate Fighter Headers
             document.getElementById('vP1Avatar').src = versusP1Profile.avatar;
             document.getElementById('vP1Name').textContent = versusP1Profile.name;
             document.getElementById('vP1Level').textContent = `LVL ${versusP1Profile.level ?? 0}`;
@@ -1579,7 +1660,6 @@ exports.handler = async function(event) {
             document.getElementById('vP2Level').textContent = `LVL ${versusP2Profile.level ?? 0}`;
             document.getElementById('vP2SteamId').textContent = versusP2Profile.steamId;
 
-            // Define the 6 Head-to-Head Battle Categories
             const categories = [
                 {
                     label: 'Estimated Account Worth',
@@ -1633,7 +1713,7 @@ exports.handler = async function(event) {
                     v2: s2.overallCostPerHourUsd,
                     fmt1: `${formatMoney(s1.overallCostPerHourUsd)}/hr`,
                     fmt2: `${formatMoney(s2.overallCostPerHourUsd)}/hr`,
-                    higherWins: false // Lower cost per hour wins!
+                    higherWins: false
                 }
             ];
 
@@ -1649,7 +1729,6 @@ exports.handler = async function(event) {
                         p1Won = cat.v1 > cat.v2;
                         p2Won = cat.v2 > cat.v1;
                     } else {
-                        // Lower wins (if > 0)
                         p1Won = cat.v1 > 0 && (cat.v1 < cat.v2 || cat.v2 === 0);
                         p2Won = cat.v2 > 0 && (cat.v2 < cat.v1 || cat.v1 === 0);
                     }
@@ -1658,7 +1737,6 @@ exports.handler = async function(event) {
                 if (p1Won) p1Wins++;
                 if (p2Won) p2Wins++;
 
-                // Calculate tug-of-war bar percentages
                 const sum = (cat.v1 + cat.v2) || 1;
                 let p1Pct = Math.round((cat.v1 / sum) * 100);
                 p1Pct = Math.min(92, Math.max(8, p1Pct));
@@ -1690,7 +1768,6 @@ exports.handler = async function(event) {
 
             document.getElementById('versusMetricsContainer').innerHTML = barsHtml;
 
-            // Update Scoreboard & Winner Crowns
             document.getElementById('vScoreP1').textContent = p1Wins;
             document.getElementById('vScoreP2').textContent = p2Wins;
 
@@ -1711,11 +1788,9 @@ exports.handler = async function(event) {
                 summaryText.textContent = `It's a dead heat tie (${p1Wins} - ${p2Wins})!`;
             }
 
-            // Render Shared Games Showdown
             renderSharedGamesShowdown();
         }
 
-        // Find and compare games owned by BOTH Player 1 and Player 2
         function renderSharedGamesShowdown() {
             const p2Map = new Map();
             (versusP2Profile.games || []).forEach(g => {
@@ -1788,7 +1863,6 @@ exports.handler = async function(event) {
             }).join('');
         }
 
-        // Render Top 5 Playtime Distribution Bars
         function renderTop5Bars(games, totalHours) {
             const container = document.getElementById('topGamesBarsContainer');
             const sortedByHours = [...games].sort((a, b) => b.hours - a.hours).slice(0, 5);
@@ -1828,7 +1902,6 @@ exports.handler = async function(event) {
             }).join('');
         }
 
-        // Filter Tab Switcher
         function setLibraryFilter(filter) {
             currentFilter = filter;
             ['all', 'binge', 'shame', 'paid'].forEach(f => {
@@ -1842,7 +1915,6 @@ exports.handler = async function(event) {
             renderLibraryTable();
         }
 
-        // Render Searchable & Sortable Game Library Table
         function renderLibraryTable() {
             const tbody = document.getElementById('libraryTableBody');
             const query = (document.getElementById('gameSearchInput').value || '').toLowerCase().trim();
@@ -1856,7 +1928,6 @@ exports.handler = async function(event) {
                 return true;
             });
 
-            // Sort logic
             filtered.sort((a, b) => {
                 if (sortMode === 'hours-desc') return b.hours - a.hours;
                 if (sortMode === 'hours-asc') return a.hours - b.hours;
@@ -1888,14 +1959,13 @@ exports.handler = async function(event) {
                 const steamHeaderImg = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${g.appid}/header.jpg`;
                 const barPct = Math.min(100, Math.max(2, (g.hours / maxHoursInLib) * 100));
 
-                // Cost per hour calculation
                 let cphDisplay = '';
                 let cphColor = 'text-slate-300';
                 if (g.retailUsd === 0) {
                     cphDisplay = 'FREE';
                     cphColor = 'text-emerald-400 font-bold';
                 } else if (g.hours === 0) {
-                    cphDisplay = '∞ (Unplayed)';
+                    cphDisplay = 'Unplayed';
                     cphColor = 'text-rose-400';
                 } else {
                     const cphUsd = g.retailUsd / g.hours;
@@ -1905,14 +1975,13 @@ exports.handler = async function(event) {
                     else cphColor = 'text-amber-300';
                 }
 
-                // Status Badge
                 let badgeHtml = '';
                 if (g.hours >= 100) {
-                    badgeHtml = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-steam-blue/20 text-steam-accent border border-steam-accent/40">🔥 Binge Played</span>`;
+                    badgeHtml = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-steam-blue/20 text-steam-accent border border-steam-accent/40">Binge Played</span>`;
                 } else if (g.hours > 0) {
-                    badgeHtml = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">✓ Played</span>`;
+                    badgeHtml = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Played</span>`;
                 } else {
-                    badgeHtml = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30">🕸️ Unplayed</span>`;
+                    badgeHtml = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30">Unplayed</span>`;
                 }
 
                 return `
@@ -1932,8 +2001,11 @@ exports.handler = async function(event) {
                                 <div class="bg-steam-accent h-full rounded-full" style="width: ${g.hours > 0 ? barPct : 0}%"></div>
                             </div>
                         </td>
-                        <td class="py-3.5 px-4 font-mono text-slate-200">
-                            ${g.retailUsd === 0 ? '<span class="text-emerald-400">Free to Play</span>' : formatMoney(g.retailUsd)}
+                        <td id="price-cell-${g.appid}" onclick="promptEditGamePrice(${g.appid}, ${g.retailUsd})" title="Click to customize price" class="py-3.5 px-4 font-mono text-slate-200 cursor-pointer hover:text-steam-accent transition">
+                            <div class="flex items-center gap-1.5">
+                                <span>${g.retailUsd === 0 ? '<span class="text-emerald-400">Free to Play</span>' : formatMoney(g.retailUsd)}</span>
+                                <i class="ph ph-pencil-simple text-xs text-slate-500 opacity-0 group-hover:opacity-100"></i>
+                            </div>
                         </td>
                         <td class="py-3.5 px-4 font-mono text-emerald-400 hidden md:table-cell">
                             ${g.saleUsd === 0 ? 'Free' : formatMoney(g.saleUsd)}
@@ -1949,41 +2021,6 @@ exports.handler = async function(event) {
             }).join('');
         }
 
-        // Fetch Live Game Prices via Public CheapShark API (CORS-Enabled out of the box!)
-        async function fetchLiveCheapSharkPrices() {
-            const btn = document.getElementById('livePriceBtn');
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i><span>Syncing CheapShark API...</span>`;
-            btn.disabled = true;
-
-            let updatedCount = 0;
-            try {
-                // Sync a batch of top titles in the library with live CheapShark deals
-                const gamesToSync = activeProfile.games.slice(0, 6);
-                for (const game of gamesToSync) {
-                    if (game.retailUsd === 0) continue;
-                    const res = await fetch(`https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(game.title)}&limit=1`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data && data.length > 0 && data[0].cheapest) {
-                            game.saleUsd = parseFloat(data[0].cheapest);
-                            updatedCount++;
-                        }
-                    }
-                }
-                updateDashboard();
-                showToast(`Synced live store deals for ${updatedCount} games via CheapShark API!`, 'success');
-            } catch (err) {
-                showToast(`Live pricing fallback active. Could not reach CheapShark.`, 'warning');
-            } finally {
-                btn.innerHTML = originalHtml;
-                btn.disabled = false;
-            }
-        }
-
-        // =====================================================================
-        // CO-OP CASINO ROULETTE & WEB AUDIO SYNTHESIS ENGINE
-        // =====================================================================
         let audioCtx = null;
         function getAudioContext() {
             if (!audioCtx) {
@@ -2022,7 +2059,7 @@ exports.handler = async function(event) {
             try {
                 const ctx = getAudioContext();
                 if (!ctx) return;
-                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                const notes = [523.25, 659.25, 783.99, 1046.50];
                 notes.forEach((freq, idx) => {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
@@ -2057,32 +2094,190 @@ exports.handler = async function(event) {
             if (rouletteBlindMode) {
                 btn.className = 'px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition';
                 icon.className = 'ph-bold ph-eye-slash';
-                label.textContent = 'Blind Mode: ON (Hidden Until Ready)';
+                label.textContent = 'Blind Mode: ON';
             } else {
                 btn.className = 'px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-steam-border text-xs font-bold flex items-center gap-1.5 transition';
                 icon.className = 'ph-bold ph-eye';
-                label.textContent = 'Blind Mode: OFF (Visible)';
+                label.textContent = 'Blind Mode: OFF';
             }
             renderRouletteArena();
+            broadcastRouletteState();
+        }
+
+        async function syncRouletteSteamLibraries() {
+            const p1Id = document.getElementById('rouletteP1SteamInput').value.trim();
+            const p2Id = document.getElementById('rouletteP2SteamInput').value.trim();
+
+            if (!p1Id) {
+                showToast('Please enter Player 1 Steam ID or Vanity username.', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('syncRouletteLibsBtn');
+            const orig = btn.innerHTML;
+            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i><span>Syncing...</span>`;
+
+            const res1 = await fetchSteamAccountData(p1Id);
+            rouletteP1Account = res1.profile;
+            document.getElementById('rouletteP1NameInput').value = rouletteP1Account.name;
+
+            if (p2Id) {
+                const res2 = await fetchSteamAccountData(p2Id);
+                rouletteP2Account = res2.profile;
+                document.getElementById('rouletteP2NameInput').value = rouletteP2Account.name;
+            } else {
+                rouletteP2Account = null;
+            }
+
+            recomputeRouletteAvailableLibrary(true);
+            rouletteP1Ready = false;
+            rouletteP2Ready = false;
+            renderRouletteArena();
+            broadcastRouletteState();
+
+            if (rouletteP2Account) {
+                showToast(`Synced Shared Games between ${rouletteP1Account.name} & ${rouletteP2Account.name} (${rouletteAvailableLibrary.length} shared)!`, 'success');
+            } else {
+                showToast(`Synced ${rouletteP1Account.name}'s Owned Games (${rouletteAvailableLibrary.length} titles)!`, 'success');
+            }
+            btn.innerHTML = orig;
+        }
+
+        function clearPlayer2Roulette() {
+            document.getElementById('rouletteP2SteamInput').value = '';
+            rouletteP2Account = null;
+            recomputeRouletteAvailableLibrary(true);
+            renderRouletteArena();
+            broadcastRouletteState();
+            showToast('Cleared Player 2 - showing all games owned by Player 1.', 'info');
+        }
+
+        function loadOwnedIntoRoulette(filterType) {
+            if (rouletteAvailableLibrary.length === 0) {
+                recomputeRouletteAvailableLibrary(false);
+            }
+            let filtered = [...rouletteAvailableLibrary];
+            if (filterType === 'backlog') {
+                filtered = filtered.filter(g => (g.hours || 0) <= 2.0);
+                if (filtered.length === 0) {
+                    showToast('No games under 2 hours found in this library - loading least played instead.', 'warning');
+                    filtered = [...rouletteAvailableLibrary].sort((a, b) => a.hours - b.hours);
+                }
+            } else {
+                filtered.sort((a, b) => b.hours - a.hours);
+            }
+
+            roulettePool = filtered.slice(0, 12).map(g => ({
+                appid: g.appid,
+                title: g.title,
+                hours: g.hours || 0,
+                p1Pct: 75,
+                p2Pct: 75,
+                genre: g.genre || 'Owned'
+            }));
+
+            rouletteP1Ready = false;
+            rouletteP2Ready = false;
+            document.getElementById('rouletteWinnerBanner').classList.add('hidden');
+            renderRouletteArena();
+            broadcastRouletteState();
+            showToast(`Loaded ${roulettePool.length} ${filterType === 'backlog' ? '< 2h Backlog' : 'Owned/Shared'} games into the Roulette!`, 'success');
+        }
+
+        function toggleLibraryPickerModal(show) {
+            const modal = document.getElementById('libraryPickerModal');
+            modal.classList.toggle('hidden', !show);
+            if (show) {
+                if (rouletteAvailableLibrary.length === 0) recomputeRouletteAvailableLibrary(false);
+                renderLibraryPickerList();
+            }
+        }
+
+        function renderLibraryPickerList() {
+            const container = document.getElementById('libraryPickerListContainer');
+            const query = (document.getElementById('pickerSearchInput').value || '').toLowerCase().trim();
+            const inPoolSet = new Set(roulettePool.map(g => Number(g.appid)));
+
+            const subtitle = document.getElementById('pickerModalSubtitle');
+            if (rouletteP2Account) {
+                subtitle.textContent = `Showing Shared Games owned by both ${rouletteP1Account.name} and ${rouletteP2Account.name}`;
+            } else {
+                subtitle.textContent = `Showing games owned by ${rouletteP1Account.name}`;
+            }
+
+            document.getElementById('pickerPoolCountStatus').textContent = `${roulettePool.length} game${roulettePool.length === 1 ? '' : 's'} currently in Roulette`;
+
+            const matches = rouletteAvailableLibrary.filter(g => !query || g.title.toLowerCase().includes(query));
+            if (matches.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">No owned games match your search.</div>`;
+                return;
+            }
+
+            container.innerHTML = matches.map(g => {
+                const isSelected = inPoolSet.has(Number(g.appid));
+                const steamImg = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${g.appid}/header.jpg`;
+                return `
+                    <div onclick="toggleGameInPicker(${g.appid})" class="p-2.5 rounded-xl border ${isSelected ? 'bg-emerald-500/15 border-emerald-400/50' : 'bg-slate-900/80 border-steam-border hover:border-slate-600'} flex items-center justify-between gap-3 cursor-pointer transition">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <img src="${steamImg}" onerror="this.src='https://placehold.co/120x56/1b2838/66c0f4?text=STEAM'" class="w-14 h-7 rounded object-cover shrink-0">
+                            <div class="truncate">
+                                <div class="text-xs font-bold text-white truncate">${g.title}</div>
+                                <div class="text-[10px] font-mono text-slate-400">${(g.hours || 0).toFixed(1)} hrs played</div>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 ${isSelected ? 'bg-emerald-400 text-slate-950' : 'bg-slate-800 text-slate-300'}">
+                            ${isSelected ? 'In Pool' : '+ Pick'}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleGameInPicker(appid) {
+            const existingIdx = roulettePool.findIndex(g => Number(g.appid) === Number(appid));
+            if (existingIdx !== -1) {
+                roulettePool.splice(existingIdx, 1);
+            } else {
+                const found = rouletteAvailableLibrary.find(g => Number(g.appid) === Number(appid));
+                if (found) {
+                    roulettePool.unshift({
+                        appid: found.appid,
+                        title: found.title,
+                        hours: found.hours || 0,
+                        p1Pct: 80,
+                        p2Pct: 80,
+                        genre: found.genre || 'Owned'
+                    });
+                }
+            }
+            renderLibraryPickerList();
+            renderRouletteArena();
+            broadcastRouletteState();
+        }
+
+        function clearRoulettePoolFromPicker() {
+            roulettePool = [];
+            renderLibraryPickerList();
+            renderRouletteArena();
+            broadcastRouletteState();
         }
 
         function computeRouletteOdds() {
-            // If either player sets 0%, game is vetoed (weight 0). Otherwise average + synergy bonus if both >= 80%
             let totalWeight = 0;
             const enriched = roulettePool.map((g, index) => {
-                const p1 = Number(g.p1Pct) || 0;
-                const p2 = Number(g.p2Pct) || 0;
+                const p1 = Math.min(100, Math.max(0, Number(g.p1Pct) || 0));
+                const p2 = Math.min(100, Math.max(0, Number(g.p2Pct) || 0));
                 let weight = 0;
                 let synergy = false;
                 if (p1 > 0 && p2 > 0) {
                     weight = (p1 + p2) / 2;
                     if (p1 >= 80 && p2 >= 80) {
-                        weight *= 1.25; // Synergy boost!
+                        weight *= 1.25;
                         synergy = true;
                     }
                 }
                 totalWeight += weight;
-                return { ...g, index, weight, synergy, vetoed: (p1 === 0 || p2 === 0) };
+                return { ...g, p1Pct: p1, p2Pct: p2, index, weight, synergy, vetoed: (p1 === 0 || p2 === 0) };
             });
 
             return enriched.map(item => ({
@@ -2092,18 +2287,12 @@ exports.handler = async function(event) {
         }
 
         function renderRouletteArena() {
-            // Update backlog count chip from activeProfile
-            const backlogGames = (activeProfile.games || []).filter(g => g.hours <= 2.0);
-            const chip = document.getElementById('backlogCountChip');
-            if (chip) chip.textContent = backlogGames.length;
-
             const bothReady = rouletteP1Ready && rouletteP2Ready;
             const oddsList = computeRouletteOdds();
             const eligibleGames = oddsList.filter(g => g.weight > 0);
 
             document.getElementById('reelPoolSummaryBadge').textContent = `${eligibleGames.length} Eligible Game${eligibleGames.length === 1 ? '' : 's'} in Reel`;
 
-            // Update Ready Buttons UI
             const p1Btn = document.getElementById('p1ReadyBtn');
             const p2Btn = document.getElementById('p2ReadyBtn');
             const p1Status = document.getElementById('p1StatusIndicator');
@@ -2116,45 +2305,41 @@ exports.handler = async function(event) {
                 p1Btn.className = 'px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shrink-0 shadow-lg shadow-emerald-500/20 transition';
                 document.getElementById('p1ReadyIcon').className = 'ph-bold ph-check-circle';
                 document.getElementById('p1ReadyText').textContent = 'P1 READY!';
-                p1Status.innerHTML = `<span class="text-emerald-400 font-bold">✓ ${p1Name} Locked In</span>`;
+                p1Status.innerHTML = `<span class="text-emerald-400 font-bold">${p1Name} Locked In</span>`;
             } else {
                 p1Btn.className = 'px-4 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/50 text-xs font-extrabold flex items-center gap-1.5 shrink-0 transition';
                 document.getElementById('p1ReadyIcon').className = 'ph-bold ph-lock-key-open';
                 document.getElementById('p1ReadyText').textContent = 'Lock In P1';
-                p1Status.textContent = `${p1Name}: Setting Hype %...`;
+                p1Status.textContent = `${p1Name}: Typing %...`;
             }
 
             if (rouletteP2Ready) {
                 p2Btn.className = 'px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shrink-0 shadow-lg shadow-emerald-500/20 transition';
                 document.getElementById('p2ReadyIcon').className = 'ph-bold ph-check-circle';
                 document.getElementById('p2ReadyText').textContent = 'P2 READY!';
-                p2Status.innerHTML = `<span class="text-emerald-400 font-bold">✓ ${p2Name} Locked In</span>`;
+                p2Status.innerHTML = `<span class="text-emerald-400 font-bold">${p2Name} Locked In</span>`;
             } else {
                 p2Btn.className = 'px-4 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-400/50 text-xs font-extrabold flex items-center gap-1.5 shrink-0 transition';
                 document.getElementById('p2ReadyIcon').className = 'ph-bold ph-lock-key-open';
                 document.getElementById('p2ReadyText').textContent = 'Lock In P2';
-                p2Status.textContent = `${p2Name}: Setting Hype %...`;
+                p2Status.textContent = `${p2Name}: Typing %...`;
             }
 
             const subtitle = document.getElementById('reelStatusSubtitle');
             if (bothReady) {
-                subtitle.innerHTML = `<span class="text-emerald-400 font-bold">⚡ BOTH PLAYERS LOCKED IN!</span> Percentages revealed & case reel weighted by combined hype!`;
+                subtitle.innerHTML = `<span class="text-emerald-400 font-bold">BOTH PLAYERS READY!</span> Exact percentages revealed & case reel weighted by combined hype!`;
             } else {
-                subtitle.textContent = `Set each player's 0–100% hype below and click Lock In P1 & Lock In P2 to reveal the combined odds!`;
+                subtitle.textContent = `Type or slide your 0-100% hype score for each game. When both players click Lock In, hidden percentages reveal!`;
             }
 
-            // Render Voting Rows
             const listEl = document.getElementById('rouletteVotingList');
             if (oddsList.length === 0) {
-                listEl.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">No games in the roulette pool yet. Add one above or import your backlog!</div>`;
+                listEl.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">No games in the roulette pool yet. Click "Pick Specific Games from Library" or type a game above!</div>`;
             } else {
                 listEl.innerHTML = oddsList.map((item) => {
                     const steamImg = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.appid}/header.jpg`;
-                    const hideP1 = rouletteBlindMode && rouletteP1Ready && !bothReady;
-                    const hideP2 = rouletteBlindMode && rouletteP2Ready && !bothReady;
-
-                    const p1Display = hideP1 ? '🔒 HIDDEN' : `${item.p1Pct}%`;
-                    const p2Display = hideP2 ? '🔒 HIDDEN' : `${item.p2Pct}%`;
+                    const hideP1 = rouletteBlindMode && !bothReady && (rouletteMyRole === 2 || rouletteP1Ready);
+                    const hideP2 = rouletteBlindMode && !bothReady && (rouletteMyRole === 1 || rouletteP2Ready);
 
                     let oddsBadge = '';
                     if (bothReady || !rouletteBlindMode) {
@@ -2164,21 +2349,20 @@ exports.handler = async function(event) {
                             oddsBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">${item.probability.toFixed(1)}% WIN ODDS</span>`;
                         }
                     } else {
-                        oddsBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400 border border-steam-border">🔒 Odds Hidden</span>`;
+                        oddsBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400 border border-steam-border">Odds Hidden Until Both Ready</span>`;
                     }
 
                     return `
                         <div class="p-4 rounded-xl bg-slate-900/85 border ${item.synergy && (bothReady || !rouletteBlindMode) ? 'border-emerald-400/60' : 'border-steam-border'} grid grid-cols-1 lg:grid-cols-12 gap-4 items-center transition">
-                            <!-- Game Info (4 cols) -->
                             <div class="lg:col-span-4 flex items-center justify-between gap-3">
                                 <div class="flex items-center gap-3 min-w-0">
                                     <img src="${steamImg}" onerror="this.src='https://placehold.co/120x56/1b2838/66c0f4?text=STEAM'" alt="${item.title}" class="w-16 h-8 rounded object-cover border border-steam-border shrink-0">
                                     <div class="min-w-0">
                                         <div class="font-bold text-white text-xs sm:text-sm truncate flex items-center gap-1.5">
                                             <span>${item.title}</span>
-                                            ${item.synergy && (bothReady || !rouletteBlindMode) ? '<span class="text-[10px] px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 font-mono">🔥 SYNERGY</span>' : ''}
+                                            ${item.synergy && (bothReady || !rouletteBlindMode) ? '<span class="text-[10px] px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 font-mono">SYNERGY</span>' : ''}
                                         </div>
-                                        <div class="text-[11px] text-slate-400 font-mono">${item.hours.toFixed(1)}h played • ${oddsBadge}</div>
+                                        <div class="text-[11px] text-slate-400 font-mono">${(item.hours || 0).toFixed(1)}h • ${oddsBadge}</div>
                                     </div>
                                 </div>
                                 <button onclick="removeGameFromRoulette(${item.index})" title="Remove from pool" class="text-slate-500 hover:text-rose-400 p-1">
@@ -2186,33 +2370,57 @@ exports.handler = async function(event) {
                                 </button>
                             </div>
 
-                            <!-- Player 1 Slider (4 cols) -->
                             <div class="lg:col-span-4 p-2.5 rounded-lg bg-slate-950/70 border border-cyan-500/20">
-                                <div class="flex justify-between text-xs font-mono mb-1">
-                                    <span class="text-cyan-400 font-semibold">${p1Name} Hype</span>
-                                    <span class="font-bold ${hideP1 ? 'text-amber-300' : 'text-white'}">${p1Display}</span>
+                                <div class="flex items-center justify-between text-xs font-mono mb-1.5">
+                                    <span class="text-cyan-400 font-semibold truncate">${p1Name} %</span>
+                                    ${hideP1 ? `
+                                        <span class="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 text-[11px] font-bold">HIDDEN</span>
+                                    ` : `
+                                        <div class="flex items-center gap-1">
+                                            <input 
+                                                type="number" min="0" max="100" step="1" 
+                                                value="${item.p1Pct}" 
+                                                ${rouletteP1Ready ? 'disabled' : ''}
+                                                onchange="updateRouletteSlider(${item.index}, 1, this.value)"
+                                                class="w-14 px-1.5 py-0.5 bg-slate-900 border border-cyan-500/40 rounded text-right text-xs font-bold text-white focus:outline-none focus:border-cyan-400"
+                                            >
+                                            <span class="text-cyan-400 font-bold">%</span>
+                                        </div>
+                                    `}
                                 </div>
                                 <input 
-                                    type="range" min="0" max="100" step="5" 
-                                    value="${item.p1Pct}" 
-                                    ${rouletteP1Ready ? 'disabled' : ''}
+                                    type="range" min="0" max="100" step="1" 
+                                    value="${hideP1 ? 50 : item.p1Pct}" 
+                                    ${(rouletteP1Ready || hideP1) ? 'disabled' : ''}
                                     oninput="updateRouletteSlider(${item.index}, 1, this.value)"
-                                    class="w-full accent-cyan-400 cursor-pointer disabled:opacity-30"
+                                    class="w-full accent-cyan-400 cursor-pointer disabled:opacity-25"
                                 >
                             </div>
 
-                            <!-- Player 2 Slider (4 cols) -->
                             <div class="lg:col-span-4 p-2.5 rounded-lg bg-slate-950/70 border border-purple-500/20">
-                                <div class="flex justify-between text-xs font-mono mb-1">
-                                    <span class="text-purple-400 font-semibold">${p2Name} Hype</span>
-                                    <span class="font-bold ${hideP2 ? 'text-amber-300' : 'text-white'}">${p2Display}</span>
+                                <div class="flex items-center justify-between text-xs font-mono mb-1.5">
+                                    <span class="text-purple-400 font-semibold truncate">${p2Name} %</span>
+                                    ${hideP2 ? `
+                                        <span class="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 text-[11px] font-bold">HIDDEN</span>
+                                    ` : `
+                                        <div class="flex items-center gap-1">
+                                            <input 
+                                                type="number" min="0" max="100" step="1" 
+                                                value="${item.p2Pct}" 
+                                                ${rouletteP2Ready ? 'disabled' : ''}
+                                                onchange="updateRouletteSlider(${item.index}, 2, this.value)"
+                                                class="w-14 px-1.5 py-0.5 bg-slate-900 border border-purple-500/40 rounded text-right text-xs font-bold text-white focus:outline-none focus:border-purple-400"
+                                            >
+                                            <span class="text-purple-400 font-bold">%</span>
+                                        </div>
+                                    `}
                                 </div>
                                 <input 
-                                    type="range" min="0" max="100" step="5" 
-                                    value="${item.p2Pct}" 
-                                    ${rouletteP2Ready ? 'disabled' : ''}
+                                    type="range" min="0" max="100" step="1" 
+                                    value="${hideP2 ? 50 : item.p2Pct}" 
+                                    ${(rouletteP2Ready || hideP2) ? 'disabled' : ''}
                                     oninput="updateRouletteSlider(${item.index}, 2, this.value)"
-                                    class="w-full accent-purple-400 cursor-pointer disabled:opacity-30"
+                                    class="w-full accent-purple-400 cursor-pointer disabled:opacity-25"
                                 >
                             </div>
                         </div>
@@ -2257,35 +2465,37 @@ exports.handler = async function(event) {
 
         function updateRouletteSlider(idx, playerNum, val) {
             if (!roulettePool[idx]) return;
-            if (playerNum === 1) roulettePool[idx].p1Pct = Number(val);
-            if (playerNum === 2) roulettePool[idx].p2Pct = Number(val);
+            const clamped = Math.min(100, Math.max(0, Number(val) || 0));
+            if (playerNum === 1) roulettePool[idx].p1Pct = clamped;
+            if (playerNum === 2) roulettePool[idx].p2Pct = clamped;
             renderRouletteArena();
             broadcastRouletteState();
         }
 
-        function updateRouletteVoterNames() {
+        function updateRouletteVoterNames(shouldBroadcast = false) {
             renderRouletteArena();
+            if (shouldBroadcast) broadcastRouletteState();
         }
 
-        function togglePlayerReady(playerNum) {
+        function togglePlayerReady(playerNum, shouldBroadcast = true) {
             if (playerNum === 1) rouletteP1Ready = !rouletteP1Ready;
             if (playerNum === 2) rouletteP2Ready = !rouletteP2Ready;
             playCasinoTickSound(700);
             renderRouletteArena();
-            broadcastRouletteState();
+            if (shouldBroadcast) broadcastRouletteState();
 
             if (rouletteP1Ready && rouletteP2Ready) {
                 playCasinoWinFanfare();
-                showToast('Both players LOCKED IN! Hype percentages revealed — spin the wheel!', 'success');
+                showToast('Both players LOCKED IN! Hidden percentages revealed - spin the wheel!', 'success');
             }
         }
 
-        function resetRouletteReadyState() {
+        function resetRouletteReadyState(shouldBroadcast = true) {
             rouletteP1Ready = false;
             rouletteP2Ready = false;
             document.getElementById('rouletteWinnerBanner').classList.add('hidden');
             renderRouletteArena();
-            broadcastRouletteState();
+            if (shouldBroadcast) broadcastRouletteState();
         }
 
         function removeGameFromRoulette(idx) {
@@ -2304,23 +2514,27 @@ exports.handler = async function(event) {
             const btn = document.getElementById('addRouletteGameBtn');
             btn.disabled = true;
 
-            let foundAppId = 730;
-            let resolvedTitle = title;
-            try {
-                const res = await fetch(`https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(title)}&limit=1`);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && data.length > 0) {
-                        resolvedTitle = data[0].external || title;
-                        if (data[0].steamAppID) foundAppId = Number(data[0].steamAppID);
+            const ownedMatch = rouletteAvailableLibrary.find(g => g.title.toLowerCase().includes(title.toLowerCase()));
+            let foundAppId = ownedMatch ? ownedMatch.appid : 730;
+            let resolvedTitle = ownedMatch ? ownedMatch.title : title;
+
+            if (!ownedMatch) {
+                try {
+                    const res = await fetch(`https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(title)}&limit=1`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.length > 0) {
+                            resolvedTitle = data[0].external || title;
+                            if (data[0].steamAppID) foundAppId = Number(data[0].steamAppID);
+                        }
                     }
-                }
-            } catch (e) {}
+                } catch (e) {}
+            }
 
             roulettePool.unshift({
                 appid: foundAppId,
                 title: resolvedTitle,
-                hours: 0.0,
+                hours: ownedMatch ? ownedMatch.hours : 0.0,
                 p1Pct: 80,
                 p2Pct: 80,
                 genre: 'Custom Pick'
@@ -2329,61 +2543,7 @@ exports.handler = async function(event) {
             btn.disabled = false;
             renderRouletteArena();
             broadcastRouletteState();
-            showToast(`Added "${resolvedTitle}" to the Roulette Pool!`, 'success');
-        }
-
-        function populateRouletteFromBacklog() {
-            const backlog = (activeProfile.games || []).filter(g => g.hours <= 2.0);
-            const source = backlog.length > 0 ? backlog : (activeProfile.games || []).slice(-6);
-            roulettePool = source.slice(0, 10).map(g => ({
-                appid: g.appid,
-                title: g.title,
-                hours: g.hours,
-                p1Pct: 75,
-                p2Pct: 75,
-                genre: g.genre || 'Backlog'
-            }));
-            rouletteP1Ready = false;
-            rouletteP2Ready = false;
-            document.getElementById('rouletteWinnerBanner').classList.add('hidden');
-            renderRouletteArena();
-            showToast(`Loaded ${roulettePool.length} Backlog games (< 2h played) into the Casino Roulette!`, 'success');
-        }
-
-        function populateRouletteFromShared() {
-            const p2Map = new Map();
-            (versusP2Profile.games || []).forEach(g => p2Map.set(g.appid, g));
-            const shared = (versusP1Profile.games || []).filter(g1 => p2Map.has(g1.appid));
-            const source = shared.length > 0 ? shared : PRESET_PROFILES.core.games.slice(0, 6);
-
-            roulettePool = source.slice(0, 10).map(g => ({
-                appid: g.appid,
-                title: g.title,
-                hours: g.hours,
-                p1Pct: 80,
-                p2Pct: 80,
-                genre: 'Shared Library'
-            }));
-            rouletteP1Ready = false;
-            rouletteP2Ready = false;
-            document.getElementById('rouletteWinnerBanner').classList.add('hidden');
-            renderRouletteArena();
-            showToast(`Loaded ${roulettePool.length} Shared Co-op Games from P1 & P2!`, 'info');
-        }
-
-        function populateRouletteTopCoop() {
-            roulettePool = [
-                { appid: 553850, title: 'HELLDIVERS 2', hours: 1.2, p1Pct: 95, p2Pct: 90, genre: 'Co-op Shooter' },
-                { appid: 1966720, title: 'Lethal Company', hours: 0.5, p1Pct: 85, p2Pct: 95, genre: 'Co-op Horror' },
-                { appid: 548430, title: 'Deep Rock Galactic', hours: 1.8, p1Pct: 80, p2Pct: 85, genre: 'Co-op FPS' },
-                { appid: 632360, title: 'Risk of Rain 2', hours: 0.0, p1Pct: 75, p2Pct: 80, genre: 'Roguelike' },
-                { appid: 1086940, title: "Baldur's Gate 3", hours: 0.0, p1Pct: 90, p2Pct: 85, genre: 'Co-op CRPG' },
-                { appid: 892970, title: 'Valheim', hours: 0.4, p1Pct: 70, p2Pct: 65, genre: 'Survival' }
-            ];
-            rouletteP1Ready = false;
-            rouletteP2Ready = false;
-            renderRouletteArena();
-            showToast('Loaded Squad Co-op Hits into the Casino Roulette!', 'info');
+            showToast(`Added "${resolvedTitle}" to the Live Roulette Pool!`, 'success');
         }
 
         function pickWeightedGame(eligibleGames) {
@@ -2398,17 +2558,13 @@ exports.handler = async function(event) {
 
         let lastWinnerAppId = null;
 
-        function spinCasinoRoulette(forceUnlock = false) {
+        function triggerLiveRouletteSpin(forceUnlock = false) {
             if (rouletteIsSpinning) return;
-            if (forceUnlock) {
+            if (forceUnlock || !rouletteP1Ready || !rouletteP2Ready) {
                 rouletteP1Ready = true;
                 rouletteP2Ready = true;
                 renderRouletteArena();
-            } else if (!rouletteP1Ready || !rouletteP2Ready) {
-                rouletteP1Ready = true;
-                rouletteP2Ready = true;
-                renderRouletteArena();
-                showToast('Auto-locked both players to spin the weighted reel!', 'info');
+                broadcastRouletteState();
             }
 
             const oddsList = computeRouletteOdds();
@@ -2418,19 +2574,54 @@ exports.handler = async function(event) {
                 return;
             }
 
+            const winner = pickWeightedGame(eligible);
+            const WIN_INDEX = 38;
+            const TOTAL_CARDS = 46;
+            const reelAppIds = [];
+            for (let i = 0; i < TOTAL_CARDS; i++) {
+                if (i === WIN_INDEX) {
+                    reelAppIds.push(winner.appid);
+                } else {
+                    reelAppIds.push(pickWeightedGame(eligible).appid);
+                }
+            }
+            const jitterRatio = (Math.random() - 0.5) * 0.45;
+
+            if (mqttClient && mqttClient.connected) {
+                const topicBase = `steampulse/v35/live/${rouletteRoomCode}`;
+                mqttClient.publish(`${topicBase}/spin`, JSON.stringify({
+                    sender: myClientId,
+                    winnerAppId: winner.appid,
+                    jitterRatio,
+                    reelAppIds
+                }));
+            }
+
+            executeDeterministicReelSpin(winner.appid, jitterRatio, reelAppIds);
+        }
+
+        function executeDeterministicReelSpin(winnerAppId, jitterRatio = 0, reelAppIds = null) {
+            if (rouletteIsSpinning) return;
+            const oddsList = computeRouletteOdds();
+            const eligible = oddsList.filter(g => g.weight > 0);
+            if (eligible.length === 0) return;
+
+            const winner = eligible.find(g => Number(g.appid) === Number(winnerAppId)) || eligible[0];
+            lastWinnerAppId = winner.appid;
+
             rouletteIsSpinning = true;
             document.getElementById('rouletteWinnerBanner').classList.add('hidden');
 
-            const winner = pickWeightedGame(eligible);
-            lastWinnerAppId = winner.appid;
-
-            // Build 48-card reel strip with the winner placed precisely at index 38
             const WIN_INDEX = 38;
             const TOTAL_CARDS = 46;
+            const byAppId = new Map(eligible.map(g => [Number(g.appid), g]));
+
             const reelItems = [];
             for (let i = 0; i < TOTAL_CARDS; i++) {
                 if (i === WIN_INDEX) {
                     reelItems.push(winner);
+                } else if (reelAppIds && reelAppIds[i] && byAppId.has(Number(reelAppIds[i]))) {
+                    reelItems.push(byAppId.get(Number(reelAppIds[i])));
                 } else {
                     reelItems.push(pickWeightedGame(eligible));
                 }
@@ -2454,15 +2645,14 @@ exports.handler = async function(event) {
                 `;
             }).join('');
 
-            // Force layout reflow before starting CSS transition
             void track.offsetWidth;
 
             const viewportWidth = track.parentElement.clientWidth;
             const firstCard = track.firstElementChild;
             const cardWidth = firstCard ? firstCard.getBoundingClientRect().width : 192;
-            const gapPx = 12; // gap-3 = 12px
-            const padLeft = 16; // px-4 = 16px
-            const jitter = (Math.random() - 0.5) * (cardWidth * 0.45);
+            const gapPx = 12;
+            const padLeft = 16;
+            const jitter = jitterRatio * cardWidth;
 
             const targetCenter = padLeft + WIN_INDEX * (cardWidth + gapPx) + (cardWidth / 2) + jitter;
             const translateX = -(targetCenter - (viewportWidth / 2));
@@ -2471,7 +2661,6 @@ exports.handler = async function(event) {
             track.style.transition = `transform ${durationMs}ms cubic-bezier(0.12, 0.85, 0.18, 1)`;
             track.style.transform = `translateX(${translateX}px)`;
 
-            // Schedule deceleration tick sounds
             let elapsed = 60;
             let interval = 55;
             const triggerTicks = () => {
@@ -2494,7 +2683,6 @@ exports.handler = async function(event) {
                     winCardEl.classList.add('ring-4', 'ring-amber-400', 'scale-105', 'transition-all');
                 }
 
-                // Populate Winner Banner
                 const p1Name = document.getElementById('rouletteP1NameInput').value || 'P1';
                 const p2Name = document.getElementById('rouletteP2NameInput').value || 'P2';
                 document.getElementById('winnerGameImg').src = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${winner.appid}/header.jpg`;
@@ -2504,7 +2692,7 @@ exports.handler = async function(event) {
                 document.getElementById('winnerSteamLaunchBtn').href = `steam://run/${winner.appid}`;
                 document.getElementById('rouletteWinnerBanner').classList.remove('hidden');
 
-                showToast(`🎉 Winner Selected: ${winner.title}!`, 'success');
+                showToast(`Winner Selected: ${winner.title}!`, 'success');
             }, durationMs + 60);
         }
 
@@ -2514,55 +2702,31 @@ exports.handler = async function(event) {
                 if (idx !== -1) roulettePool.splice(idx, 1);
             }
             renderRouletteArena();
-            spinCasinoRoulette(true);
-        }
-
-        function generateNewRouletteRoom() {
-            rouletteRoomCode = 'PULSE-' + Math.floor(100 + Math.random() * 900);
-            document.getElementById('rouletteRoomCodeDisplay').textContent = rouletteRoomCode;
-            showToast(`Created new Co-op Room: ${rouletteRoomCode}`, 'info');
+            broadcastRouletteState();
+            triggerLiveRouletteSpin(true);
         }
 
         function broadcastRouletteState() {
-            if (!rouletteChannel) return;
-            try {
-                rouletteChannel.postMessage({
-                    type: 'SYNC_STATE',
-                    room: rouletteRoomCode,
-                    pool: roulettePool,
-                    p1Ready: rouletteP1Ready,
-                    p2Ready: rouletteP2Ready
-                });
-            } catch (e) {}
+            const payload = {
+                sender: myClientId,
+                room: rouletteRoomCode,
+                pool: roulettePool,
+                p1Ready: rouletteP1Ready,
+                p2Ready: rouletteP2Ready,
+                blindMode: rouletteBlindMode,
+                p1Name: document.getElementById('rouletteP1NameInput')?.value || 'Player 1',
+                p2Name: document.getElementById('rouletteP2NameInput')?.value || 'Player 2'
+            };
+
+            if (mqttClient && mqttClient.connected) {
+                const topicBase = `steampulse/v35/live/${rouletteRoomCode}`;
+                mqttClient.publish(`${topicBase}/state`, JSON.stringify(payload));
+            }
         }
 
-        function shareRouletteRoomLink() {
-            const payload = btoa(encodeURIComponent(JSON.stringify({
-                r: rouletteRoomCode,
-                p: roulettePool.slice(0, 8)
-            })));
-            const shareUrl = `${window.location.origin}${window.location.pathname}?roulette=${payload}`;
-            copyTextToClipboard(shareUrl, `Copied Co-op Roulette Room Link (${rouletteRoomCode})! Send it to Player 2!`);
-        }
-
-        // Toggle API Drawer
-        function toggleApiDrawer() {
-            const drawer = document.getElementById('apiSettingsDrawer');
-            const chevron = document.getElementById('apiDrawerChevron');
-            drawer.classList.toggle('hidden');
-            chevron.classList.toggle('rotate-180');
-        }
-
-        function saveApiSettings() {
-            const ep = document.getElementById('serverlessEndpointInput').value.trim();
-            try { localStorage.setItem('steampulse_endpoint', ep); } catch (e) {}
-            showToast('API Settings saved! Click "Calculate Worth" to fetch your live Steam profile.', 'success');
-        }
-
-        // Toggle Modals
-        function toggleDeployModal(show) {
-            const modal = document.getElementById('deployModal');
-            modal.classList.toggle('hidden', !show);
+        function copyLiveRouletteRoomLink() {
+            const shareUrl = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(rouletteRoomCode)}&role=2`;
+            copyTextToClipboard(shareUrl, `Copied Live Room Link (${rouletteRoomCode})! Send it to Player 2 - everything syncs live!`);
         }
 
         function addCustomGameModal(show) {
@@ -2570,7 +2734,6 @@ exports.handler = async function(event) {
             modal.classList.toggle('hidden', !show);
         }
 
-        // Lookup single game price via CheapShark inside the Add Game Modal
         async function lookupSingleGamePrice() {
             const title = document.getElementById('newGameTitle').value.trim();
             if (!title) {
@@ -2597,7 +2760,6 @@ exports.handler = async function(event) {
             }
         }
 
-        // Confirm adding a game to current library
         function confirmAddCustomGame() {
             const title = document.getElementById('newGameTitle').value.trim() || 'Custom Steam Game';
             const hours = parseFloat(document.getElementById('newGameHours').value) || 0;
@@ -2618,7 +2780,6 @@ exports.handler = async function(event) {
             showToast(`Added "${title}" (${hours} hrs) to your library calculation!`, 'success');
         }
 
-        // Clipboard Helper (iFrame compatible)
         function copyTextToClipboard(text, successMsg) {
             const textarea = document.createElement('textarea');
             textarea.value = text;
@@ -2633,43 +2794,39 @@ exports.handler = async function(event) {
             document.body.removeChild(textarea);
         }
 
-        function copyServerlessCode() {
-            const code = document.getElementById('serverlessCodeBlock').innerText;
-            copyTextToClipboard(code, 'Copied Netlify/Vercel Serverless Function code to clipboard!');
-        }
-
         function copyShareSummary() {
             const worth = document.getElementById('kpiRetailWorth').textContent;
             const hours = document.getElementById('kpiTotalHours').textContent;
             const cph = document.getElementById('kpiCostPerHour').textContent;
             const completion = document.getElementById('kpiCompletionPct').textContent;
-            const text = `🎮 My SteamPulse Summary (${activeProfile.name}):\n• Total Account Worth: ${worth}\n• Combined Playtime: ${hours}\n• Entertainment Efficiency: ${cph}/hr\n• Library Played: ${completion}`;
+            const text = `My SteamPulse Summary (${activeProfile.name}):\n- Total Account Worth: ${worth}\n- Combined Playtime: ${hours}\n- Entertainment Efficiency: ${cph}/hr\n- Library Played: ${completion}`;
             copyTextToClipboard(text, 'Copied your SteamPulse stats summary to clipboard!');
         }
 
-        // Initialize on load
         window.onload = function() {
-            try {
-                const savedEp = localStorage.getItem('steampulse_endpoint');
-                if (savedEp) document.getElementById('serverlessEndpointInput').value = savedEp;
+            recomputeRouletteAvailableLibrary(true);
 
-                // Check if URL has a shared Co-op Roulette state
+            try {
                 const params = new URLSearchParams(window.location.search);
-                if (params.get('roulette')) {
-                    const decoded = JSON.parse(decodeURIComponent(atob(params.get('roulette'))));
-                    if (decoded && Array.isArray(decoded.p)) {
-                        rouletteRoomCode = decoded.r || rouletteRoomCode;
-                        roulettePool = decoded.p;
-                        document.getElementById('rouletteRoomCodeDisplay').textContent = rouletteRoomCode;
-                        switchAppMode('roulette');
-                        showToast(`Joined Co-op Roulette Room ${rouletteRoomCode}!`, 'success');
+                const joinedRoom = params.get('room');
+                const joinedRole = Number(params.get('role'));
+
+                if (joinedRoom) {
+                    rouletteRoomCode = joinedRoom.trim();
+                    if (joinedRole === 2) {
+                        setRouletteRole(2);
                     }
+                    switchAppMode('roulette');
+                    showToast(`Connected to Live Co-op Room ${rouletteRoomCode} as Player ${rouletteMyRole}!`, 'success');
                 }
             } catch (e) {}
 
+            initLiveRoomWebSocket(rouletteRoomCode);
             updateDashboard();
             renderVersusArena();
             renderRouletteArena();
+
+            handleAnalyzeAccount();
         };
     </script>
 </body>
