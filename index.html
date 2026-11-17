@@ -92,20 +92,20 @@
                         <div class="flex items-center gap-2">
                             <span class="font-extrabold text-lg tracking-tight text-white">Steam<span class="text-steam-accent">Pulse</span></span>
                             <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded-full bg-steam-blue/15 text-steam-accent border border-steam-accent/30 font-semibold">v3.0</span>
-                        </div>
-                        <p class="text-xs text-slate-400 hidden xl:block">Account Worth, Playtime & 1v1 Battle Arena</p>
-                    </div>
-                </div>
-
-                <!-- Main Mode Switcher (Single Profile vs AccVersusAcc) -->
-                <div class="flex items-center bg-slate-950/90 border border-steam-border rounded-xl p-1 text-xs font-bold">
-                    <button onclick="switchAppMode('single')" id="mode-single-btn" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-steam-blue text-slate-950 shadow">
+                <!-- Main Mode Switcher (Single Profile vs AccVersusAcc vs Co-op Casino Roulette) -->
+                <div class="flex items-center bg-slate-950/90 border border-steam-border rounded-xl p-1 text-xs font-bold overflow-x-auto">
+                    <button onclick="switchAppMode('single')" id="mode-single-btn" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-steam-blue text-slate-950 shadow shrink-0">
                         <i class="ph-bold ph-user"></i>
                         <span>Single Profile</span>
                     </button>
-                    <button onclick="switchAppMode('versus')" id="mode-versus-btn" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-white">
+                    <button onclick="switchAppMode('versus')" id="mode-versus-btn" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-white shrink-0">
                         <i class="ph-bold ph-swords text-amber-400"></i>
                         <span>AccVersusAcc</span>
+                    </button>
+                    <button onclick="switchAppMode('roulette')" id="mode-roulette-btn" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-white shrink-0 relative">
+                        <i class="ph-bold ph-casino-chip text-emerald-400"></i>
+                        <span>Co-op Casino Roulette</span>
+                        <span class="px-1.5 py-0.2 rounded text-[9px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">NEW</span>
                     </button>
                 </div>
             </div>
@@ -675,6 +675,220 @@
 
         </div>
 
+        <!-- =============================================================== -->
+        <!-- VIEW 3: CO-OP CASINO ROULETTE & BLIND READY-CHECK               -->
+        <!-- =============================================================== -->
+        <div id="rouletteModeContainer" class="hidden space-y-6">
+
+            <!-- Top Casino Header & Sub-Mode / Room Sync Bar -->
+            <section class="glass-panel rounded-2xl p-5 sm:p-6 border border-emerald-500/30 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-10 -top-10 w-60 h-60 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-steam-border">
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                                <i class="ph-fill ph-sparkle"></i> CO-OP DECIDER & CASE REEL
+                            </span>
+                            <h2 class="text-lg sm:text-xl font-extrabold text-white">Play-Next Casino Roulette & Blind Matcher</h2>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">
+                            Import your <strong class="text-slate-200">&lt; 2h Backlog</strong> or <strong class="text-slate-200">2-Player Shared Games</strong>. Both players secretly rate how much they want to play (0–100%). Lock in to reveal odds & spin the weighted CS2-style case reel!
+                        </p>
+                    </div>
+
+                    <!-- Audio & Blind Mode Controls -->
+                    <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        <button onclick="toggleRouletteBlindMode()" id="blindModeToggleBtn" class="px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition">
+                            <i class="ph-bold ph-eye-slash" id="blindModeIcon"></i>
+                            <span id="blindModeLabel">Blind Mode: ON (Hidden Until Ready)</span>
+                        </button>
+                        <button onclick="toggleCasinoAudio()" id="casinoAudioBtn" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-steam-border text-xs font-bold flex items-center gap-1.5 transition">
+                            <i class="ph-bold ph-speaker-high" id="casinoAudioIcon"></i>
+                            <span id="casinoAudioLabel">SFX: ON</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pool Quick-Import & Room Sync Controls -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-4 items-center">
+                    <!-- Quick Pool Generators -->
+                    <div class="lg:col-span-7 flex flex-wrap items-center gap-2">
+                        <span class="text-xs font-semibold text-slate-400 mr-1">Load Pool:</span>
+                        <button onclick="populateRouletteFromBacklog()" class="px-3 py-2 rounded-xl bg-steam-blue/20 hover:bg-steam-blue/30 text-steam-accent border border-steam-accent/40 text-xs font-bold flex items-center gap-1.5 transition">
+                            <i class="ph-bold ph-Drop"></i>
+                            <span>My &lt; 2h Backlog (<span id="backlogCountChip">6</span>)</span>
+                        </button>
+                        <button onclick="populateRouletteFromShared()" class="px-3 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-xs font-bold flex items-center gap-1.5 transition">
+                            <i class="ph-bold ph-users-three"></i>
+                            <span>P1 + P2 Shared Games</span>
+                        </button>
+                        <button onclick="populateRouletteTopCoop()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-steam-border text-xs font-semibold flex items-center gap-1.5 transition">
+                            <i class="ph-bold ph-fire text-amber-400"></i>
+                            <span>Squad Co-op Hits</span>
+                        </button>
+                    </div>
+
+                    <!-- Live 2-Player Room Sync / Share Link -->
+                    <div class="lg:col-span-5 flex flex-wrap sm:flex-nowrap items-center justify-end gap-2">
+                        <div class="flex items-center bg-slate-950 border border-steam-border rounded-xl px-3 py-1.5 text-xs font-mono text-slate-300 gap-2 w-full sm:w-auto justify-between">
+                            <span class="text-slate-400">Room:</span>
+                            <strong id="rouletteRoomCodeDisplay" class="text-emerald-400 tracking-wider">PULSE-774</strong>
+                            <button onclick="generateNewRouletteRoom()" title="New Room Code" class="text-slate-400 hover:text-white">
+                                <i class="ph-bold ph-arrows-clockwise"></i>
+                            </button>
+                        </div>
+                        <button onclick="shareRouletteRoomLink()" class="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center justify-center gap-1.5 transition shrink-0">
+                            <i class="ph-bold ph-link"></i>
+                            <span>Share Sync Link</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CS2-STYLE HORIZONTAL CASE-OPENING REEL & SPIN STAGE -->
+            <section class="glass-panel rounded-2xl p-5 sm:p-6 border border-steam-accent/30 shadow-2xl relative overflow-hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                            <i class="ph-fill ph-spinner-ball text-emerald-400"></i>
+                            Weighted Casino Case Reel
+                        </h3>
+                        <p id="reelStatusSubtitle" class="text-xs text-slate-400">
+                            Lock in both players below to unlock the weighted probability reel — or click Quick Spin to roll immediately!
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="reelPoolSummaryBadge" class="text-xs font-mono px-3 py-1 rounded-lg bg-slate-900 text-steam-accent border border-steam-border">
+                            6 Eligible Games in Reel
+                        </span>
+                    </div>
+                </div>
+
+                <!-- The Reel Viewport -->
+                <div class="relative w-full h-40 sm:h-44 rounded-2xl bg-slate-950 border-2 border-steam-border overflow-hidden shadow-inner flex items-center">
+                    <!-- Left/Right Edge Vignette Gradients -->
+                    <div class="absolute inset-y-0 left-0 w-16 sm:w-28 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent z-20 pointer-events-none"></div>
+                    <div class="absolute inset-y-0 right-0 w-16 sm:w-28 bg-gradient-to-l from-slate-950 via-slate-950/80 to-transparent z-20 pointer-events-none"></div>
+
+                    <!-- Center Golden Laser Needle -->
+                    <div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-1 bg-amber-400 z-30 shadow-[0_0_15px_#fbbf24] pointer-events-none flex flex-col justify-between items-center">
+                        <div class="w-4 h-4 -mt-1.5 rotate-45 bg-amber-400 shadow-md"></div>
+                        <div class="w-4 h-4 -mb-1.5 rotate-45 bg-amber-400 shadow-md"></div>
+                    </div>
+
+                    <!-- Scrolling Track -->
+                    <div id="casinoReelTrack" class="flex items-center gap-3 px-4 will-change-transform" style="transform: translateX(0px);">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+
+                <!-- Winner Reveal Banner (Shown after spin completes) -->
+                <div id="rouletteWinnerBanner" class="hidden mt-5 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-500/20 via-cyan-500/15 to-amber-500/20 border-2 border-emerald-400/60 shadow-2xl transition-all">
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <img id="winnerGameImg" src="https://placehold.co/180x84/1b2838/66c0f4?text=WINNER" alt="Winner" class="w-28 sm:w-36 h-16 sm:h-20 rounded-xl object-cover border-2 border-emerald-400 shadow-lg shrink-0">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded bg-emerald-400 text-slate-950 font-mono font-extrabold text-[10px] uppercase">TONIGHT'S WINNER</span>
+                                    <span id="winnerOddsBadge" class="text-xs font-mono text-emerald-300 font-bold">28.4% Odds</span>
+                                </div>
+                                <h4 id="winnerGameTitle" class="text-lg sm:text-2xl font-extrabold text-white mt-0.5">HELLDIVERS 2</h4>
+                                <p id="winnerGameVoteSummary" class="text-xs font-mono text-slate-300 mt-0.5">
+                                    P1 Hype: 90% • P2 Hype: 85% • Combined Match Score: 88%
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+                            <a id="winnerSteamLaunchBtn" href="steam://run/553850" class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg transition">
+                                <i class="ph-fill ph-play-circle text-lg"></i>
+                                <span>Launch in Steam</span>
+                            </a>
+                            <button onclick="removeWinnerAndRespin()" class="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-rose-300 border border-rose-500/30 text-xs font-bold transition">
+                                Remove & Spin Again
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spin Trigger Deck -->
+                <div class="mt-5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-steam-border/60">
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2 text-xs">
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span>
+                            <span class="text-slate-300 font-medium" id="p1StatusIndicator">P1: Editing Votes...</span>
+                        </div>
+                        <span class="text-slate-600">•</span>
+                        <div class="flex items-center gap-2 text-xs">
+                            <span class="w-2.5 h-2.5 rounded-full bg-purple-400 inline-block"></span>
+                            <span class="text-slate-300 font-medium" id="p2StatusIndicator">P2: Editing Votes...</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <button onclick="resetRouletteReadyState()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-steam-border text-xs font-semibold flex items-center gap-1.5 transition">
+                            <i class="ph-bold ph-arrow-counter-clockwise"></i>
+                            <span>Unlock & Edit %</span>
+                        </button>
+                        <button onclick="spinCasinoRoulette(true)" id="quickSpinBtn" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition">
+                            <i class="ph-bold ph-shuffle"></i>
+                            <span>Force Spin Now</span>
+                        </button>
+                        <button onclick="spinCasinoRoulette(false)" id="mainCasinoSpinBtn" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 via-cyan-400 to-steam-blue hover:from-emerald-300 hover:to-cyan-300 text-slate-950 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition">
+                            <i class="ph-fill ph-casino-chip text-lg"></i>
+                            <span id="mainSpinBtnText">SPIN WEIGHTED ROULETTE</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2-PLAYER BLIND HYPE % VOTING & READY-CHECK ARENA -->
+            <section class="glass-panel rounded-2xl p-5 sm:p-6">
+                <!-- Add Custom Game Bar + Player Ready Lock-in Header -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pb-5 mb-5 border-b border-steam-border items-center">
+                    
+                    <!-- Player 1 Ready Box -->
+                    <div class="lg:col-span-4 p-3.5 rounded-xl bg-cyan-500/5 border border-cyan-500/30 flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <div class="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-bold">Player 1 Voter</div>
+                            <input type="text" id="rouletteP1NameInput" value="CyberSwiss_99" oninput="updateRouletteVoterNames()" class="bg-transparent text-sm font-extrabold text-white focus:outline-none border-b border-transparent focus:border-cyan-400 w-full truncate">
+                        </div>
+                        <button onclick="togglePlayerReady(1)" id="p1ReadyBtn" class="px-4 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/50 text-xs font-extrabold flex items-center gap-1.5 shrink-0 transition">
+                            <i class="ph-bold ph-lock-key-open" id="p1ReadyIcon"></i>
+                            <span id="p1ReadyText">Lock In P1</span>
+                        </button>
+                    </div>
+
+                    <!-- Center Add Game to Pool Input -->
+                    <div class="lg:col-span-4 flex gap-2">
+                        <input type="text" id="rouletteCustomGameInput" placeholder="Add game to roulette (e.g. Lethal Company)..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-steam-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400">
+                        <button onclick="addGameToRoulettePool()" id="addRouletteGameBtn" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shrink-0 flex items-center gap-1 transition">
+                            <i class="ph-bold ph-plus"></i>
+                            <span>Add</span>
+                        </button>
+                    </div>
+
+                    <!-- Player 2 Ready Box -->
+                    <div class="lg:col-span-4 p-3.5 rounded-xl bg-purple-500/5 border border-purple-500/30 flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <div class="text-[10px] font-mono uppercase tracking-wider text-purple-400 font-bold">Player 2 Voter</div>
+                            <input type="text" id="rouletteP2NameInput" value="ArchonCollector" oninput="updateRouletteVoterNames()" class="bg-transparent text-sm font-extrabold text-white focus:outline-none border-b border-transparent focus:border-purple-400 w-full truncate">
+                        </div>
+                        <button onclick="togglePlayerReady(2)" id="p2ReadyBtn" class="px-4 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-400/50 text-xs font-extrabold flex items-center gap-1.5 shrink-0 transition">
+                            <i class="ph-bold ph-lock-key-open" id="p2ReadyIcon"></i>
+                            <span id="p2ReadyText">Lock In P2</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Voting Cards List -->
+                <div id="rouletteVotingList" class="space-y-3">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </section>
+
+        </div>
+
     </main>
 
     <!-- Footer -->
@@ -960,26 +1174,68 @@ exports.handler = async function(event) {
         let versusP1Profile = JSON.parse(JSON.stringify(PRESET_PROFILES.core));
         let versusP2Profile = JSON.parse(JSON.stringify(PRESET_PROFILES.collector));
 
-        // Switch between Single Profile and AccVersusAcc Mode
+        // =====================================================================
+        // CO-OP CASINO ROULETTE & BLIND READY-CHECK STATE
+        // =====================================================================
+        let rouletteBlindMode = true;
+        let rouletteAudioEnabled = true;
+        let rouletteP1Ready = false;
+        let rouletteP2Ready = false;
+        let rouletteIsSpinning = false;
+        let rouletteRoomCode = 'PULSE-' + Math.floor(100 + Math.random() * 900);
+        let rouletteChannel = null;
+        try {
+            rouletteChannel = new BroadcastChannel('steampulse_coop_roulette');
+            rouletteChannel.onmessage = (ev) => {
+                if (ev.data && ev.data.type === 'SYNC_STATE' && ev.data.room === rouletteRoomCode) {
+                    roulettePool = ev.data.pool;
+                    rouletteP1Ready = ev.data.p1Ready;
+                    rouletteP2Ready = ev.data.p2Ready;
+                    renderRouletteArena();
+                    showToast('Live Room Synced with Co-op Partner!', 'info');
+                }
+            };
+        } catch (e) {}
+
+        let roulettePool = [
+            { appid: 553850, title: 'HELLDIVERS 2', hours: 1.2, p1Pct: 90, p2Pct: 85, genre: 'Co-op Shooter' },
+            { appid: 1966720, title: 'Lethal Company', hours: 0.5, p1Pct: 75, p2Pct: 95, genre: 'Co-op Horror' },
+            { appid: 548430, title: 'Deep Rock Galactic', hours: 1.8, p1Pct: 80, p2Pct: 80, genre: 'Co-op FPS' },
+            { appid: 632360, title: 'Risk of Rain 2', hours: 0.0, p1Pct: 65, p2Pct: 70, genre: 'Roguelike' },
+            { appid: 892970, title: 'Valheim', hours: 0.4, p1Pct: 50, p2Pct: 60, genre: 'Survival' },
+            { appid: 1086940, title: "Baldur's Gate 3", hours: 0.0, p1Pct: 85, p2Pct: 90, genre: 'Co-op CRPG' }
+        ];
+
+        // Switch between Single Profile, AccVersusAcc, and Co-op Casino Roulette Mode
         function switchAppMode(mode) {
             currentAppMode = mode;
             const singleContainer = document.getElementById('singleModeContainer');
             const versusContainer = document.getElementById('versusModeContainer');
+            const rouletteContainer = document.getElementById('rouletteModeContainer');
             const singleBtn = document.getElementById('mode-single-btn');
             const versusBtn = document.getElementById('mode-versus-btn');
+            const rouletteBtn = document.getElementById('mode-roulette-btn');
+
+            singleContainer.classList.add('hidden');
+            versusContainer.classList.add('hidden');
+            rouletteContainer.classList.add('hidden');
+
+            singleBtn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-white shrink-0';
+            versusBtn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-white shrink-0';
+            rouletteBtn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-white shrink-0 relative';
 
             if (mode === 'single') {
                 singleContainer.classList.remove('hidden');
-                versusContainer.classList.add('hidden');
-                singleBtn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-steam-blue text-slate-950 shadow';
-                versusBtn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-white';
+                singleBtn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-steam-blue text-slate-950 shadow shrink-0';
                 updateDashboard();
-            } else {
-                singleContainer.classList.add('hidden');
+            } else if (mode === 'versus') {
                 versusContainer.classList.remove('hidden');
-                versusBtn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 shadow';
-                singleBtn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-white';
+                versusBtn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 shadow shrink-0';
                 renderVersusArena();
+            } else if (mode === 'roulette') {
+                rouletteContainer.classList.remove('hidden');
+                rouletteBtn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-950 shadow shrink-0 relative';
+                renderRouletteArena();
             }
         }
 
@@ -1725,60 +1981,568 @@ exports.handler = async function(event) {
             }
         }
 
-        // Handle SteamID64 Search / Live Serverless Fetch or Smart Simulation
-        async function handleAnalyzeAccount() {
-            const inputVal = document.getElementById('steamIdInput').value.trim();
-            if (!inputVal) {
-                showToast('Please enter a SteamID64 or Custom Vanity name.', 'warning');
+        // =====================================================================
+        // CO-OP CASINO ROULETTE & WEB AUDIO SYNTHESIS ENGINE
+        // =====================================================================
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) audioCtx = new AudioContextClass();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playCasinoTickSound(freq = 820) {
+            if (!rouletteAudioEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.035);
+
+                gain.gain.setValueAtTime(0.14, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.035);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.04);
+            } catch (e) {}
+        }
+
+        function playCasinoWinFanfare() {
+            if (!rouletteAudioEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    const startTime = ctx.currentTime + idx * 0.09;
+                    osc.frequency.setValueAtTime(freq, startTime);
+
+                    gain.gain.setValueAtTime(0.12, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.45);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.46);
+                });
+            } catch (e) {}
+        }
+
+        function toggleCasinoAudio() {
+            rouletteAudioEnabled = !rouletteAudioEnabled;
+            document.getElementById('casinoAudioIcon').className = rouletteAudioEnabled ? 'ph-bold ph-speaker-high' : 'ph-bold ph-speaker-slash';
+            document.getElementById('casinoAudioLabel').textContent = rouletteAudioEnabled ? 'SFX: ON' : 'SFX: MUTED';
+            if (rouletteAudioEnabled) playCasinoTickSound(960);
+        }
+
+        function toggleRouletteBlindMode() {
+            rouletteBlindMode = !rouletteBlindMode;
+            const btn = document.getElementById('blindModeToggleBtn');
+            const icon = document.getElementById('blindModeIcon');
+            const label = document.getElementById('blindModeLabel');
+
+            if (rouletteBlindMode) {
+                btn.className = 'px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition';
+                icon.className = 'ph-bold ph-eye-slash';
+                label.textContent = 'Blind Mode: ON (Hidden Until Ready)';
+            } else {
+                btn.className = 'px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-steam-border text-xs font-bold flex items-center gap-1.5 transition';
+                icon.className = 'ph-bold ph-eye';
+                label.textContent = 'Blind Mode: OFF (Visible)';
+            }
+            renderRouletteArena();
+        }
+
+        function computeRouletteOdds() {
+            // If either player sets 0%, game is vetoed (weight 0). Otherwise average + synergy bonus if both >= 80%
+            let totalWeight = 0;
+            const enriched = roulettePool.map((g, index) => {
+                const p1 = Number(g.p1Pct) || 0;
+                const p2 = Number(g.p2Pct) || 0;
+                let weight = 0;
+                let synergy = false;
+                if (p1 > 0 && p2 > 0) {
+                    weight = (p1 + p2) / 2;
+                    if (p1 >= 80 && p2 >= 80) {
+                        weight *= 1.25; // Synergy boost!
+                        synergy = true;
+                    }
+                }
+                totalWeight += weight;
+                return { ...g, index, weight, synergy, vetoed: (p1 === 0 || p2 === 0) };
+            });
+
+            return enriched.map(item => ({
+                ...item,
+                probability: totalWeight > 0 ? (item.weight / totalWeight) * 100 : 0
+            }));
+        }
+
+        function renderRouletteArena() {
+            // Update backlog count chip from activeProfile
+            const backlogGames = (activeProfile.games || []).filter(g => g.hours <= 2.0);
+            const chip = document.getElementById('backlogCountChip');
+            if (chip) chip.textContent = backlogGames.length;
+
+            const bothReady = rouletteP1Ready && rouletteP2Ready;
+            const oddsList = computeRouletteOdds();
+            const eligibleGames = oddsList.filter(g => g.weight > 0);
+
+            document.getElementById('reelPoolSummaryBadge').textContent = `${eligibleGames.length} Eligible Game${eligibleGames.length === 1 ? '' : 's'} in Reel`;
+
+            // Update Ready Buttons UI
+            const p1Btn = document.getElementById('p1ReadyBtn');
+            const p2Btn = document.getElementById('p2ReadyBtn');
+            const p1Status = document.getElementById('p1StatusIndicator');
+            const p2Status = document.getElementById('p2StatusIndicator');
+
+            const p1Name = document.getElementById('rouletteP1NameInput').value || 'Player 1';
+            const p2Name = document.getElementById('rouletteP2NameInput').value || 'Player 2';
+
+            if (rouletteP1Ready) {
+                p1Btn.className = 'px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shrink-0 shadow-lg shadow-emerald-500/20 transition';
+                document.getElementById('p1ReadyIcon').className = 'ph-bold ph-check-circle';
+                document.getElementById('p1ReadyText').textContent = 'P1 READY!';
+                p1Status.innerHTML = `<span class="text-emerald-400 font-bold">✓ ${p1Name} Locked In</span>`;
+            } else {
+                p1Btn.className = 'px-4 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/50 text-xs font-extrabold flex items-center gap-1.5 shrink-0 transition';
+                document.getElementById('p1ReadyIcon').className = 'ph-bold ph-lock-key-open';
+                document.getElementById('p1ReadyText').textContent = 'Lock In P1';
+                p1Status.textContent = `${p1Name}: Setting Hype %...`;
+            }
+
+            if (rouletteP2Ready) {
+                p2Btn.className = 'px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shrink-0 shadow-lg shadow-emerald-500/20 transition';
+                document.getElementById('p2ReadyIcon').className = 'ph-bold ph-check-circle';
+                document.getElementById('p2ReadyText').textContent = 'P2 READY!';
+                p2Status.innerHTML = `<span class="text-emerald-400 font-bold">✓ ${p2Name} Locked In</span>`;
+            } else {
+                p2Btn.className = 'px-4 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-400/50 text-xs font-extrabold flex items-center gap-1.5 shrink-0 transition';
+                document.getElementById('p2ReadyIcon').className = 'ph-bold ph-lock-key-open';
+                document.getElementById('p2ReadyText').textContent = 'Lock In P2';
+                p2Status.textContent = `${p2Name}: Setting Hype %...`;
+            }
+
+            const subtitle = document.getElementById('reelStatusSubtitle');
+            if (bothReady) {
+                subtitle.innerHTML = `<span class="text-emerald-400 font-bold">⚡ BOTH PLAYERS LOCKED IN!</span> Percentages revealed & case reel weighted by combined hype!`;
+            } else {
+                subtitle.textContent = `Set each player's 0–100% hype below and click Lock In P1 & Lock In P2 to reveal the combined odds!`;
+            }
+
+            // Render Voting Rows
+            const listEl = document.getElementById('rouletteVotingList');
+            if (oddsList.length === 0) {
+                listEl.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">No games in the roulette pool yet. Add one above or import your backlog!</div>`;
+            } else {
+                listEl.innerHTML = oddsList.map((item) => {
+                    const steamImg = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.appid}/header.jpg`;
+                    const hideP1 = rouletteBlindMode && rouletteP1Ready && !bothReady;
+                    const hideP2 = rouletteBlindMode && rouletteP2Ready && !bothReady;
+
+                    const p1Display = hideP1 ? '🔒 HIDDEN' : `${item.p1Pct}%`;
+                    const p2Display = hideP2 ? '🔒 HIDDEN' : `${item.p2Pct}%`;
+
+                    let oddsBadge = '';
+                    if (bothReady || !rouletteBlindMode) {
+                        if (item.vetoed) {
+                            oddsBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/20 text-rose-300 border border-rose-500/30">0% VETOED</span>`;
+                        } else {
+                            oddsBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">${item.probability.toFixed(1)}% WIN ODDS</span>`;
+                        }
+                    } else {
+                        oddsBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400 border border-steam-border">🔒 Odds Hidden</span>`;
+                    }
+
+                    return `
+                        <div class="p-4 rounded-xl bg-slate-900/85 border ${item.synergy && (bothReady || !rouletteBlindMode) ? 'border-emerald-400/60' : 'border-steam-border'} grid grid-cols-1 lg:grid-cols-12 gap-4 items-center transition">
+                            <!-- Game Info (4 cols) -->
+                            <div class="lg:col-span-4 flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <img src="${steamImg}" onerror="this.src='https://placehold.co/120x56/1b2838/66c0f4?text=STEAM'" alt="${item.title}" class="w-16 h-8 rounded object-cover border border-steam-border shrink-0">
+                                    <div class="min-w-0">
+                                        <div class="font-bold text-white text-xs sm:text-sm truncate flex items-center gap-1.5">
+                                            <span>${item.title}</span>
+                                            ${item.synergy && (bothReady || !rouletteBlindMode) ? '<span class="text-[10px] px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 font-mono">🔥 SYNERGY</span>' : ''}
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 font-mono">${item.hours.toFixed(1)}h played • ${oddsBadge}</div>
+                                    </div>
+                                </div>
+                                <button onclick="removeGameFromRoulette(${item.index})" title="Remove from pool" class="text-slate-500 hover:text-rose-400 p-1">
+                                    <i class="ph-bold ph-trash"></i>
+                                </button>
+                            </div>
+
+                            <!-- Player 1 Slider (4 cols) -->
+                            <div class="lg:col-span-4 p-2.5 rounded-lg bg-slate-950/70 border border-cyan-500/20">
+                                <div class="flex justify-between text-xs font-mono mb-1">
+                                    <span class="text-cyan-400 font-semibold">${p1Name} Hype</span>
+                                    <span class="font-bold ${hideP1 ? 'text-amber-300' : 'text-white'}">${p1Display}</span>
+                                </div>
+                                <input 
+                                    type="range" min="0" max="100" step="5" 
+                                    value="${item.p1Pct}" 
+                                    ${rouletteP1Ready ? 'disabled' : ''}
+                                    oninput="updateRouletteSlider(${item.index}, 1, this.value)"
+                                    class="w-full accent-cyan-400 cursor-pointer disabled:opacity-30"
+                                >
+                            </div>
+
+                            <!-- Player 2 Slider (4 cols) -->
+                            <div class="lg:col-span-4 p-2.5 rounded-lg bg-slate-950/70 border border-purple-500/20">
+                                <div class="flex justify-between text-xs font-mono mb-1">
+                                    <span class="text-purple-400 font-semibold">${p2Name} Hype</span>
+                                    <span class="font-bold ${hideP2 ? 'text-amber-300' : 'text-white'}">${p2Display}</span>
+                                </div>
+                                <input 
+                                    type="range" min="0" max="100" step="5" 
+                                    value="${item.p2Pct}" 
+                                    ${rouletteP2Ready ? 'disabled' : ''}
+                                    oninput="updateRouletteSlider(${item.index}, 2, this.value)"
+                                    class="w-full accent-purple-400 cursor-pointer disabled:opacity-30"
+                                >
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            if (!rouletteIsSpinning) {
+                buildStaticReelTrack(eligibleGames, bothReady || !rouletteBlindMode);
+            }
+        }
+
+        function buildStaticReelTrack(eligibleGames, showExactOdds) {
+            const track = document.getElementById('casinoReelTrack');
+            if (!track) return;
+            track.style.transition = 'none';
+            track.style.transform = 'translateX(0px)';
+
+            const source = eligibleGames.length > 0 ? eligibleGames : roulettePool.map(g => ({ ...g, probability: 100 / Math.max(1, roulettePool.length) }));
+            if (source.length === 0) {
+                track.innerHTML = `<div class="text-xs text-slate-500 px-6">Add games to populate the casino reel!</div>`;
                 return;
             }
 
-            const btn = document.getElementById('analyzeBtn');
-            const orig = btn.innerHTML;
-            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i><span>Analyzing...</span>`;
+            const cards = [];
+            for (let i = 0; i < 18; i++) {
+                const g = source[i % source.length];
+                const steamImg = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${g.appid}/header.jpg`;
+                const oddsText = showExactOdds && g.probability ? `${g.probability.toFixed(0)}% Odds` : 'Ready to Spin';
+                cards.push(`
+                    <div class="w-44 sm:w-48 h-32 rounded-xl bg-slate-900 border border-steam-border shrink-0 overflow-hidden flex flex-col justify-between p-2 relative group">
+                        <img src="${steamImg}" onerror="this.src='https://placehold.co/180x84/1b2838/66c0f4?text=STEAM'" alt="${g.title}" class="w-full h-20 rounded-lg object-cover">
+                        <div class="flex items-center justify-between gap-1 mt-1 px-0.5">
+                            <span class="text-xs font-bold text-white truncate">${g.title}</span>
+                            <span class="text-[10px] font-mono text-emerald-400 shrink-0">${oddsText}</span>
+                        </div>
+                    </div>
+                `);
+            }
+            track.innerHTML = cards.join('');
+        }
 
-            const endpoint = document.getElementById('serverlessEndpointInput').value.trim();
+        function updateRouletteSlider(idx, playerNum, val) {
+            if (!roulettePool[idx]) return;
+            if (playerNum === 1) roulettePool[idx].p1Pct = Number(val);
+            if (playerNum === 2) roulettePool[idx].p2Pct = Number(val);
+            renderRouletteArena();
+            broadcastRouletteState();
+        }
 
-            // Attempt live serverless endpoint first if deployed on Netlify/Vercel
+        function updateRouletteVoterNames() {
+            renderRouletteArena();
+        }
+
+        function togglePlayerReady(playerNum) {
+            if (playerNum === 1) rouletteP1Ready = !rouletteP1Ready;
+            if (playerNum === 2) rouletteP2Ready = !rouletteP2Ready;
+            playCasinoTickSound(700);
+            renderRouletteArena();
+            broadcastRouletteState();
+
+            if (rouletteP1Ready && rouletteP2Ready) {
+                playCasinoWinFanfare();
+                showToast('Both players LOCKED IN! Hype percentages revealed — spin the wheel!', 'success');
+            }
+        }
+
+        function resetRouletteReadyState() {
+            rouletteP1Ready = false;
+            rouletteP2Ready = false;
+            document.getElementById('rouletteWinnerBanner').classList.add('hidden');
+            renderRouletteArena();
+            broadcastRouletteState();
+        }
+
+        function removeGameFromRoulette(idx) {
+            roulettePool.splice(idx, 1);
+            renderRouletteArena();
+            broadcastRouletteState();
+        }
+
+        async function addGameToRoulettePool() {
+            const input = document.getElementById('rouletteCustomGameInput');
+            const title = input.value.trim();
+            if (!title) {
+                showToast('Enter a game title to add to the roulette pool.', 'warning');
+                return;
+            }
+            const btn = document.getElementById('addRouletteGameBtn');
+            btn.disabled = true;
+
+            let foundAppId = 730;
+            let resolvedTitle = title;
             try {
-                const res = await fetch(`${endpoint}?steamid=${encodeURIComponent(inputVal)}`);
+                const res = await fetch(`https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(title)}&limit=1`);
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && data.player && Array.isArray(data.games)) {
-                        activeProfile.name = data.player.personaname || inputVal;
-                        activeProfile.steamId = data.player.steamid || inputVal;
-                        activeProfile.avatar = data.player.avatarfull || activeProfile.avatar;
-                        if (data.player.timecreated) {
-                            activeProfile.createdYear = new Date(data.player.timecreated * 1000).getFullYear();
-                        }
-                        activeProfile.games = data.games.map(g => ({
-                            appid: g.appid,
-                            title: g.name || `App ${g.appid}`,
-                            hours: +((g.playtime_forever || 0) / 60).toFixed(1),
-                            retailUsd: 29.99,
-                            saleUsd: 14.99,
-                            genre: 'Steam Library'
-                        }));
-                        document.getElementById('connectionModeBadge').textContent = 'Mode: Live Serverless API Connected';
-                        document.getElementById('connectionModeBadge').className = 'px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
-                        updateDashboard();
-                        showToast(`Loaded live Steam profile for ${activeProfile.name}!`, 'success');
-                        btn.innerHTML = orig;
-                        return;
+                    if (data && data.length > 0) {
+                        resolvedTitle = data[0].external || title;
+                        if (data[0].steamAppID) foundAppId = Number(data[0].steamAppID);
                     }
                 }
-            } catch (e) {
-                // Serverless function not deployed yet; gracefully fall back to deterministic profile generator
+            } catch (e) {}
+
+            roulettePool.unshift({
+                appid: foundAppId,
+                title: resolvedTitle,
+                hours: 0.0,
+                p1Pct: 80,
+                p2Pct: 80,
+                genre: 'Custom Pick'
+            });
+            input.value = '';
+            btn.disabled = false;
+            renderRouletteArena();
+            broadcastRouletteState();
+            showToast(`Added "${resolvedTitle}" to the Roulette Pool!`, 'success');
+        }
+
+        function populateRouletteFromBacklog() {
+            const backlog = (activeProfile.games || []).filter(g => g.hours <= 2.0);
+            const source = backlog.length > 0 ? backlog : (activeProfile.games || []).slice(-6);
+            roulettePool = source.slice(0, 10).map(g => ({
+                appid: g.appid,
+                title: g.title,
+                hours: g.hours,
+                p1Pct: 75,
+                p2Pct: 75,
+                genre: g.genre || 'Backlog'
+            }));
+            rouletteP1Ready = false;
+            rouletteP2Ready = false;
+            document.getElementById('rouletteWinnerBanner').classList.add('hidden');
+            renderRouletteArena();
+            showToast(`Loaded ${roulettePool.length} Backlog games (< 2h played) into the Casino Roulette!`, 'success');
+        }
+
+        function populateRouletteFromShared() {
+            const p2Map = new Map();
+            (versusP2Profile.games || []).forEach(g => p2Map.set(g.appid, g));
+            const shared = (versusP1Profile.games || []).filter(g1 => p2Map.has(g1.appid));
+            const source = shared.length > 0 ? shared : PRESET_PROFILES.core.games.slice(0, 6);
+
+            roulettePool = source.slice(0, 10).map(g => ({
+                appid: g.appid,
+                title: g.title,
+                hours: g.hours,
+                p1Pct: 80,
+                p2Pct: 80,
+                genre: 'Shared Library'
+            }));
+            rouletteP1Ready = false;
+            rouletteP2Ready = false;
+            document.getElementById('rouletteWinnerBanner').classList.add('hidden');
+            renderRouletteArena();
+            showToast(`Loaded ${roulettePool.length} Shared Co-op Games from P1 & P2!`, 'info');
+        }
+
+        function populateRouletteTopCoop() {
+            roulettePool = [
+                { appid: 553850, title: 'HELLDIVERS 2', hours: 1.2, p1Pct: 95, p2Pct: 90, genre: 'Co-op Shooter' },
+                { appid: 1966720, title: 'Lethal Company', hours: 0.5, p1Pct: 85, p2Pct: 95, genre: 'Co-op Horror' },
+                { appid: 548430, title: 'Deep Rock Galactic', hours: 1.8, p1Pct: 80, p2Pct: 85, genre: 'Co-op FPS' },
+                { appid: 632360, title: 'Risk of Rain 2', hours: 0.0, p1Pct: 75, p2Pct: 80, genre: 'Roguelike' },
+                { appid: 1086940, title: "Baldur's Gate 3", hours: 0.0, p1Pct: 90, p2Pct: 85, genre: 'Co-op CRPG' },
+                { appid: 892970, title: 'Valheim', hours: 0.4, p1Pct: 70, p2Pct: 65, genre: 'Survival' }
+            ];
+            rouletteP1Ready = false;
+            rouletteP2Ready = false;
+            renderRouletteArena();
+            showToast('Loaded Squad Co-op Hits into the Casino Roulette!', 'info');
+        }
+
+        function pickWeightedGame(eligibleGames) {
+            const total = eligibleGames.reduce((acc, g) => acc + g.weight, 0);
+            let r = Math.random() * total;
+            for (const g of eligibleGames) {
+                if (r < g.weight) return g;
+                r -= g.weight;
+            }
+            return eligibleGames[0];
+        }
+
+        let lastWinnerAppId = null;
+
+        function spinCasinoRoulette(forceUnlock = false) {
+            if (rouletteIsSpinning) return;
+            if (forceUnlock) {
+                rouletteP1Ready = true;
+                rouletteP2Ready = true;
+                renderRouletteArena();
+            } else if (!rouletteP1Ready || !rouletteP2Ready) {
+                rouletteP1Ready = true;
+                rouletteP2Ready = true;
+                renderRouletteArena();
+                showToast('Auto-locked both players to spin the weighted reel!', 'info');
             }
 
-            // Deterministic Custom Profile Simulation when testing locally before Netlify deployment
+            const oddsList = computeRouletteOdds();
+            const eligible = oddsList.filter(g => g.weight > 0);
+            if (eligible.length === 0) {
+                showToast('All games were vetoed (0%)! Increase at least one game above 0%.', 'warning');
+                return;
+            }
+
+            rouletteIsSpinning = true;
+            document.getElementById('rouletteWinnerBanner').classList.add('hidden');
+
+            const winner = pickWeightedGame(eligible);
+            lastWinnerAppId = winner.appid;
+
+            // Build 48-card reel strip with the winner placed precisely at index 38
+            const WIN_INDEX = 38;
+            const TOTAL_CARDS = 46;
+            const reelItems = [];
+            for (let i = 0; i < TOTAL_CARDS; i++) {
+                if (i === WIN_INDEX) {
+                    reelItems.push(winner);
+                } else {
+                    reelItems.push(pickWeightedGame(eligible));
+                }
+            }
+
+            const track = document.getElementById('casinoReelTrack');
+            track.style.transition = 'none';
+            track.style.transform = 'translateX(0px)';
+
+            track.innerHTML = reelItems.map((g, idx) => {
+                const steamImg = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${g.appid}/header.jpg`;
+                const isWinCard = idx === WIN_INDEX;
+                return `
+                    <div id="${isWinCard ? 'winningReelCard' : ''}" class="w-44 sm:w-48 h-32 rounded-xl bg-slate-900 border ${isWinCard ? 'border-emerald-400/80' : 'border-steam-border'} shrink-0 overflow-hidden flex flex-col justify-between p-2">
+                        <img src="${steamImg}" onerror="this.src='https://placehold.co/180x84/1b2838/66c0f4?text=STEAM'" alt="${g.title}" class="w-full h-20 rounded-lg object-cover">
+                        <div class="flex items-center justify-between gap-1 mt-1 px-0.5">
+                            <span class="text-xs font-bold text-white truncate">${g.title}</span>
+                            <span class="text-[10px] font-mono text-emerald-400 shrink-0">${g.probability.toFixed(0)}%</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Force layout reflow before starting CSS transition
+            void track.offsetWidth;
+
+            const viewportWidth = track.parentElement.clientWidth;
+            const firstCard = track.firstElementChild;
+            const cardWidth = firstCard ? firstCard.getBoundingClientRect().width : 192;
+            const gapPx = 12; // gap-3 = 12px
+            const padLeft = 16; // px-4 = 16px
+            const jitter = (Math.random() - 0.5) * (cardWidth * 0.45);
+
+            const targetCenter = padLeft + WIN_INDEX * (cardWidth + gapPx) + (cardWidth / 2) + jitter;
+            const translateX = -(targetCenter - (viewportWidth / 2));
+
+            const durationMs = 4600;
+            track.style.transition = `transform ${durationMs}ms cubic-bezier(0.12, 0.85, 0.18, 1)`;
+            track.style.transform = `translateX(${translateX}px)`;
+
+            // Schedule deceleration tick sounds
+            let elapsed = 60;
+            let interval = 55;
+            const triggerTicks = () => {
+                if (!rouletteIsSpinning) return;
+                playCasinoTickSound(650 + Math.random() * 350);
+                elapsed += interval;
+                interval = Math.min(420, interval * 1.075);
+                if (elapsed < durationMs - 150) {
+                    setTimeout(triggerTicks, interval);
+                }
+            };
+            triggerTicks();
+
             setTimeout(() => {
-                activeProfile.steamId = inputVal;
-                activeProfile.name = inputVal.length === 17 && !isNaN(inputVal) ? `SteamUser_${inputVal.slice(-4)}` : inputVal;
-                updateDashboard();
-                showToast(`Calculated statistics for ${activeProfile.name}. Deploy the Netlify function for live Steam API sync!`, 'info');
-                btn.innerHTML = orig;
-            }, 450);
+                rouletteIsSpinning = false;
+                playCasinoWinFanfare();
+
+                const winCardEl = document.getElementById('winningReelCard');
+                if (winCardEl) {
+                    winCardEl.classList.add('ring-4', 'ring-amber-400', 'scale-105', 'transition-all');
+                }
+
+                // Populate Winner Banner
+                const p1Name = document.getElementById('rouletteP1NameInput').value || 'P1';
+                const p2Name = document.getElementById('rouletteP2NameInput').value || 'P2';
+                document.getElementById('winnerGameImg').src = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${winner.appid}/header.jpg`;
+                document.getElementById('winnerGameTitle').textContent = winner.title;
+                document.getElementById('winnerOddsBadge').textContent = `${winner.probability.toFixed(1)}% Win Probability`;
+                document.getElementById('winnerGameVoteSummary').textContent = `${p1Name}: ${winner.p1Pct}% • ${p2Name}: ${winner.p2Pct}% • Combined Match Score: ${Math.round((winner.p1Pct + winner.p2Pct) / 2)}%`;
+                document.getElementById('winnerSteamLaunchBtn').href = `steam://run/${winner.appid}`;
+                document.getElementById('rouletteWinnerBanner').classList.remove('hidden');
+
+                showToast(`🎉 Winner Selected: ${winner.title}!`, 'success');
+            }, durationMs + 60);
+        }
+
+        function removeWinnerAndRespin() {
+            if (lastWinnerAppId !== null) {
+                const idx = roulettePool.findIndex(g => g.appid === lastWinnerAppId);
+                if (idx !== -1) roulettePool.splice(idx, 1);
+            }
+            renderRouletteArena();
+            spinCasinoRoulette(true);
+        }
+
+        function generateNewRouletteRoom() {
+            rouletteRoomCode = 'PULSE-' + Math.floor(100 + Math.random() * 900);
+            document.getElementById('rouletteRoomCodeDisplay').textContent = rouletteRoomCode;
+            showToast(`Created new Co-op Room: ${rouletteRoomCode}`, 'info');
+        }
+
+        function broadcastRouletteState() {
+            if (!rouletteChannel) return;
+            try {
+                rouletteChannel.postMessage({
+                    type: 'SYNC_STATE',
+                    room: rouletteRoomCode,
+                    pool: roulettePool,
+                    p1Ready: rouletteP1Ready,
+                    p2Ready: rouletteP2Ready
+                });
+            } catch (e) {}
+        }
+
+        function shareRouletteRoomLink() {
+            const payload = btoa(encodeURIComponent(JSON.stringify({
+                r: rouletteRoomCode,
+                p: roulettePool.slice(0, 8)
+            })));
+            const shareUrl = `${window.location.origin}${window.location.pathname}?roulette=${payload}`;
+            copyTextToClipboard(shareUrl, `Copied Co-op Roulette Room Link (${rouletteRoomCode})! Send it to Player 2!`);
         }
 
         // Toggle API Drawer
@@ -1790,7 +2554,9 @@ exports.handler = async function(event) {
         }
 
         function saveApiSettings() {
-            showToast('API Settings saved! Click "Calculate Worth" to test your endpoint.', 'success');
+            const ep = document.getElementById('serverlessEndpointInput').value.trim();
+            try { localStorage.setItem('steampulse_endpoint', ep); } catch (e) {}
+            showToast('API Settings saved! Click "Calculate Worth" to fetch your live Steam profile.', 'success');
         }
 
         // Toggle Modals
@@ -1883,8 +2649,27 @@ exports.handler = async function(event) {
 
         // Initialize on load
         window.onload = function() {
+            try {
+                const savedEp = localStorage.getItem('steampulse_endpoint');
+                if (savedEp) document.getElementById('serverlessEndpointInput').value = savedEp;
+
+                // Check if URL has a shared Co-op Roulette state
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('roulette')) {
+                    const decoded = JSON.parse(decodeURIComponent(atob(params.get('roulette'))));
+                    if (decoded && Array.isArray(decoded.p)) {
+                        rouletteRoomCode = decoded.r || rouletteRoomCode;
+                        roulettePool = decoded.p;
+                        document.getElementById('rouletteRoomCodeDisplay').textContent = rouletteRoomCode;
+                        switchAppMode('roulette');
+                        showToast(`Joined Co-op Roulette Room ${rouletteRoomCode}!`, 'success');
+                    }
+                }
+            } catch (e) {}
+
             updateDashboard();
             renderVersusArena();
+            renderRouletteArena();
         };
     </script>
 </body>
